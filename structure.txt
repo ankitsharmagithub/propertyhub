@@ -1,0 +1,114 @@
+Folder PATH listing
+Volume serial number is 000000B5 9A5B:B340
+C:\USERS\USER\DESKTOP\SPINONWEBPROPERTY\PROPERTY-PORTAL\APP
++---Enums
++---Helpers
++---Http
+|   +---Controllers
+|   |   +---Admin
+|   |   +---Auth
+|   |   +---Frontend
+|   |   \---User
+|   +---Middleware
+|   +---Requests
+|   |   +---Admin
+|   |   +---Auth
+|   |   \---User
+|   \---Resources
++---Interfaces
++---Models
++---Providers
++---Repositories
++---Services
++---Traits
+\---View
+    \---Components
+Folder PATH listing
+Volume serial number is 000000F9 9A5B:B340
+C:\USERS\USER\DESKTOP\SPINONWEBPROPERTY\PROPERTY-PORTAL\RESOURCES
++---css
++---js
+\---views
+    +---admin
+    |   +---components
+    |   +---dashboard
+    |   +---layouts
+    |   \---partials
+    +---auth
+    +---components
+    +---errors
+    +---frontend
+    |   +---blog
+    |   +---components
+    |   +---home
+    |   |   \---property
+    |   +---layouts
+    |   +---pages
+    |   +---partials
+    |   \---property
+    +---layouts
+    +---profile
+    |   \---partials
+    \---user
+        +---components
+        +---dashboard
+        +---layouts
+        +---partials
+        +---profile
+        \---property
+Folder PATH listing
+Volume serial number is 000000B2 9A5B:B340
+C:\USERS\USER\DESKTOP\SPINONWEBPROPERTY\PROPERTY-PORTAL\PUBLIC
++---assets
+|   +---admin
+|   |   +---css
+|   |   +---fonts
+|   |   +---images
+|   |   \---js
+|   \---frontend
+|       +---css
+|       +---fonts
+|       +---images
+|       \---js
++---build
+|   \---assets
+\---storage
+    +---blogs
+    +---pages
+    +---profiles
+    +---properties
+    |   +---featured
+    |   \---gallery
+    +---settings
+    |   +---favicon
+    |   \---logo
+    \---temp
+Folder PATH listing
+Volume serial number is 0000004F 9A5B:B340
+C:\USERS\USER\DESKTOP\SPINONWEBPROPERTY\PROPERTY-PORTAL\STORAGE
++---app
+|   +---private
+|   \---public
+|       +---blogs
+|       +---pages
+|       +---profiles
+|       +---properties
+|       |   +---featured
+|       |   \---gallery
+|       +---settings
+|       |   +---favicon
+|       |   \---logo
+|       \---temp
++---framework
+|   +---cache
+|   |   \---data
+|   +---sessions
+|   +---testing
+|   \---views
+\---logs
+Folder PATH listing
+Volume serial number is 000000A9 9A5B:B340
+C:\USERS\USER\DESKTOP\SPINONWEBPROPERTY\PROPERTY-PORTAL\DATABASE
++---factories
++---migrations
+\---seeders
