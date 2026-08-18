@@ -70,42 +70,158 @@ HERO + FLOATING SEARCH
     <div class="pp-search">
 
         <div class="pp-tabs">
-            <button type="button" class="pp-tab active">Buy</button>
-            <button type="button" class="pp-tab">Rent</button>
-            <button type="button" class="pp-tab">PG / Co-living</button>
-            <button type="button" class="pp-tab">Commercial</button>
+            <button type="button" class="pp-tab active" data-listing-type="">
+                All
+            </button>
+
+            <button type="button" class="pp-tab" data-listing-type="sale">
+                Buy
+            </button>
+
+            <button type="button" class="pp-tab" data-listing-type="rent">
+                Rent
+            </button>
+
+            <button type="button" class="pp-tab" data-listing-type="lease">
+                Lease
+            </button>
         </div>
 
-        <form action="#" method="GET">
+
+        <form action="{{ route('properties.index') }}" method="GET">
+
+            <input
+                type="hidden"
+                name="listing_type"
+                id="listing_type"
+                value="{{ request('listing_type') }}"
+            >
+
+            <input
+                type="hidden"
+                name="city_id"
+                id="search_city_id"
+                value="{{ request('city_id') }}"
+            >
+
+            <input
+                type="hidden"
+                name="state_id"
+                id="search_state_id"
+                value="{{ request('state_id') }}"
+            >
+
 
             <div class="row g-2 align-items-stretch">
 
+                {{-- Property Type --}}
                 <div class="col-md-3">
-                    <select name="property_type" class="form-select h-100">
-                        <option value="">Property Type</option>
-                        <option value="residential">Residential</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="plot">Plot / Land</option>
+
+                    <select
+                        name="property_type_id"
+                        class="form-select h-100"
+                    >
+
+                        <option value="">
+                            Property Type
+                        </option>
+
+                        @foreach(
+                            \App\Models\PropertyType::where('status', 1)
+                                ->orderBy('name')
+                                ->get()
+                            as $propertyType
+                        )
+
+                            <option
+                                value="{{ $propertyType->id }}"
+                                {{ request('property_type_id') == $propertyType->id ? 'selected' : '' }}
+                            >
+                                {{ $propertyType->name }}
+                            </option>
+
+                        @endforeach
+
                     </select>
+
                 </div>
 
-                <div class="col-md-5">
-                    <input type="text" name="location" class="form-control h-100" placeholder="Search city, locality or project">
+
+                {{-- Location Search --}}
+                <div class="col-md-5 position-relative">
+
+                    <input
+                        type="text"
+                        name="search"
+                        id="property-location-search"
+                        value="{{ request('search') }}"
+                        class="form-control h-100"
+                        placeholder="Search city, locality or project"
+                        autocomplete="off"
+                    >
+
+
+                    {{-- Live Suggestions --}}
+                    <div
+                        id="location-suggestions"
+                        class="position-absolute bg-white shadow rounded mt-1 w-100 d-none"
+                        style="
+                            z-index:9999;
+                            max-height:300px;
+                            overflow-y:auto;
+                        "
+                    ></div>
+
                 </div>
 
+
+                {{-- Budget --}}
                 <div class="col-md-2">
-                    <select name="budget" class="form-select h-100">
+
+                    <select
+                        name="budget"
+                        class="form-select h-100"
+                    >
+
                         <option value="">Budget</option>
-                        <option value="0-50">Under ₹50L</option>
-                        <option value="50-100">₹50L – ₹1Cr</option>
-                        <option value="100+">Above ₹1Cr</option>
+
+                        <option
+                            value="0-50"
+                            {{ request('budget') === '0-50' ? 'selected' : '' }}
+                        >
+                            Under ₹50L
+                        </option>
+
+                        <option
+                            value="50-100"
+                            {{ request('budget') === '50-100' ? 'selected' : '' }}
+                        >
+                            ₹50L – ₹1Cr
+                        </option>
+
+                        <option
+                            value="100+"
+                            {{ request('budget') === '100+' ? 'selected' : '' }}
+                        >
+                            Above ₹1Cr
+                        </option>
+
                     </select>
+
                 </div>
 
+
+                {{-- Search --}}
                 <div class="col-md-2">
-                    <button type="submit" class="pp-search-btn h-100">
-                        <i class="bi bi-search me-1"></i> Search
+
+                    <button
+                        type="submit"
+                        class="pp-search-btn h-100 w-100"
+                    >
+                        <i class="bi bi-search me-1"></i>
+                        Search
                     </button>
+
                 </div>
 
             </div>
@@ -115,6 +231,7 @@ HERO + FLOATING SEARCH
     </div>
 
 </div>
+
 
 {{-- =========================================================
 FEATURED PROPERTIES
@@ -135,48 +252,116 @@ FEATURED PROPERTIES
 
         <div class="row g-4">
 
-            @php
-                $featuredSeeds = ['prop-a','prop-b','prop-c','prop-d'];
-            @endphp
+            @forelse($featuredProperties as $i => $property)
 
-            @for($i = 1; $i <= 4; $i++)
+    <div class="col-md-6 col-lg-3 pp-reveal"
+         style="transition-delay:{{ ($i + 1) * 0.06 }}s;">
 
-                <div class="col-md-6 col-lg-3 pp-reveal" style="transition-delay:{{ $i * 0.06 }}s;">
+        <a href="{{ route('properties.show', $property->slug) }}"
+           class="text-decoration-none text-reset">
 
-                    <div class="pp-card">
+            <div class="pp-card">
 
-                        <div class="pp-card-media">
-                            <img src="https://picsum.photos/seed/{{ $featuredSeeds[$i-1] }}/500/360" alt="Modern property" loading="lazy">
-                            <span class="pp-tag pp-tag-sale">For Sale</span>
-                            <span class="pp-fav"><i class="bi bi-heart-fill"></i></span>
-                        </div>
+                <div class="pp-card-media">
 
-                        <div class="pp-card-body">
+                    @if($property->featured_image)
 
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h6 class="pp-price pp-mono mb-0">₹45,00,000</h6>
-                                <span class="pp-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
-                            </div>
+                        <img
+                            src="{{ asset('storage/properties/featured/' . $property->featured_image) }}"
+                            alt="{{ $property->title }}"
+                            loading="lazy"
+                        >
 
-                            <h5 class="fw-bold mt-2 mb-0" style="font-size:1rem;">Modern Property</h5>
-                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i> Ghaziabad, Uttar Pradesh</p>
+                    @else
 
-                            <div class="pp-meta">
-                                <span><i class="bi bi-house-door"></i>3 BHK</span>
-                                <span><i class="bi bi-rulers"></i>1450 sq.ft</span>
-                            </div>
+                        <img
+                            src="https://picsum.photos/seed/property-{{ $property->id }}/500/360"
+                            alt="{{ $property->title }}"
+                            loading="lazy"
+                        >
 
-                            <div class="pp-agent">
-                                <img src="https://picsum.photos/seed/agent{{ $i }}/60/60" alt="">
-                                <span>Listed by Owner</span>
-                            </div>
+                    @endif
 
-                        </div>
+                    <span class="pp-tag pp-tag-sale">
+                        {{ ucfirst($property->listing_type ?? 'Sale') }}
+                    </span>
+
+                    <span class="pp-fav">
+                        <i class="bi bi-heart-fill"></i>
+                    </span>
+
+                </div>
+
+                <div class="pp-card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <h6 class="pp-price pp-mono mb-0">
+                            ₹{{ number_format($property->price) }}
+                        </h6>
+
+                        @if($property->featured)
+                            <span class="pp-verified">
+                                <i class="bi bi-patch-check-fill"></i>
+                                Featured
+                            </span>
+                        @endif
+
+                    </div>
+
+                    <h5 class="fw-bold mt-2 mb-0" style="font-size:1rem;">
+                        {{ $property->title }}
+                    </h5>
+
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-geo-alt"></i>
+                        {{ $property->city->name ?? '' }},
+                        {{ $property->state->name ?? '' }}
+                    </p>
+
+                    <div class="pp-meta">
+
+                        @if($property->bedrooms !== null)
+                            <span>
+                                <i class="bi bi-house-door"></i>
+                                {{ $property->bedrooms }} BHK
+                            </span>
+                        @endif
+
+                        @if($property->area)
+                            <span>
+                                <i class="bi bi-rulers"></i>
+                                {{ $property->area }}
+                                {{ $property->area_unit }}
+                            </span>
+                        @endif
+
+                    </div>
+
+                    <div class="pp-agent">
+                        <span>
+                            <i class="bi bi-person-circle"></i>
+                            Listed by Owner
+                        </span>
                     </div>
 
                 </div>
 
-            @endfor
+            </div>
+
+        </a>
+
+    </div>
+
+@empty
+
+    <div class="col-12">
+        <div class="alert alert-light border">
+            No featured properties available.
+        </div>
+    </div>
+
+@endforelse
 
         </div>
 
@@ -209,17 +394,20 @@ PROPERTY CATEGORIES
                 ];
             @endphp
 
-            @foreach($propertyCategories as $k => $category)
+            @foreach($categories as $k => $category)
 
                 <div class="col-6 col-lg-3 pp-reveal" style="transition-delay:{{ $k * 0.06 }}s;">
 
-                    <a href="#" class="text-decoration-none">
+                    <a href="{{ url('/properties?category=' . $category->slug) }}" class="text-decoration-none">
                         <div class="pp-cat">
                             <img src="https://picsum.photos/seed/{{ $category['seed'] }}/420/320" alt="{{ $category['title'] }}" loading="lazy">
                             <div class="pp-cat-icon"><i class="bi {{ $category['icon'] }}"></i></div>
                             <div>
-                                <h5>{{ $category['title'] }}</h5>
-                                <small>{{ $category['count'] }}</small>
+                                <h5>{{ $category->name }}</h5>
+                                <small>  {{ $category->properties_count ?? '' }}
+                        @if(isset($category->properties_count))
+                            listings
+                        @endif</small>
                             </div>
                         </div>
                     </a>
@@ -302,18 +490,30 @@ LATEST PROPERTIES
 
         <div class="row g-4">
 
-            @php
-                $latestSeeds = ['latest-a','latest-b','latest-c'];
-            @endphp
-
-            @for($i = 1; $i <= 3; $i++)
+            @forelse($latestProperties as $i => $property)
 
                 <div class="col-md-6 col-lg-4 pp-reveal" style="transition-delay:{{ $i * 0.07 }}s;">
 
                     <div class="pp-card">
 
                         <div class="pp-card-media" style="height:230px;">
-                            <img src="https://picsum.photos/seed/{{ $latestSeeds[$i-1] }}/560/400" alt="Premium Family Home" loading="lazy">
+                             @if($property->featured_image)
+
+                        <img
+                            src="{{ asset('storage/properties/featured/' . $property->featured_image) }}"
+                            alt="{{ $property->title }}"
+                            loading="lazy"
+                        >
+
+                    @else
+
+                        <img
+                            src="https://picsum.photos/seed/latest-{{ $property->id }}/560/400"
+                            alt="{{ $property->title }}"
+                            loading="lazy"
+                        >
+
+                    @endif
                             <span class="pp-tag pp-tag-new">New</span>
                             <span class="pp-fav"><i class="bi bi-heart-fill"></i></span>
                         </div>
@@ -321,17 +521,36 @@ LATEST PROPERTIES
                         <div class="pp-card-body">
 
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="pp-price pp-mono mb-0">₹68,00,000</h6>
-                                <span class="text-muted small">2 days ago</span>
+                                <h6 class="pp-price pp-mono mb-0">₹{{ number_format($property->price) }}</h6>
+                                <span class="text-muted small">{{ $property->created_at->diffForHumans() }} days ago</span>
                             </div>
 
-                            <h5 class="fw-bold mt-2 mb-0" style="font-size:1rem;">Premium Family Home</h5>
-                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i> Noida, Uttar Pradesh</p>
+                            <h5 class="fw-bold mt-2 mb-0" style="font-size:1rem;">{{ $property->title }}</h5>
+                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i>{{ $property->city->name ?? '' }},
+                        {{ $property->state->name ?? '' }}</p>
 
                             <div class="pp-meta">
-                                <span><i class="bi bi-house"></i>3 Beds</span>
-                                <span><i class="bi bi-droplet"></i>2 Baths</span>
-                                <span><i class="bi bi-rulers"></i>1500 sq.ft</span>
+                                @if($property->bedrooms !== null)
+                            <span>
+                                <i class="bi bi-house"></i>
+                                {{ $property->bedrooms }} Beds
+                            </span>
+                        @endif
+
+                        @if($property->bathrooms !== null)
+                            <span>
+                                <i class="bi bi-droplet"></i>
+                                {{ $property->bathrooms }} Baths
+                            </span>
+                        @endif
+
+                        @if($property->area)
+                            <span>
+                                <i class="bi bi-rulers"></i>
+                                {{ $property->area }}
+                                {{ $property->area_unit }}
+                            </span>
+                        @endif
                             </div>
 
                         </div>
@@ -339,7 +558,15 @@ LATEST PROPERTIES
 
                 </div>
 
-            @endfor
+            @empty
+
+    <div class="col-12">
+        <div class="alert alert-light border">
+            No properties available.
+        </div>
+    </div>
+
+@endforelse
 
         </div>
 
@@ -438,144 +665,7 @@ TESTIMONIALS
 
 </section>
 
-{{-- =========================================================
-BLOG SECTION
-========================================================= --}}
 
-<section class="py-5 py-md-6">
-
-    <div class="container">
-
-        <div class="d-flex justify-content-between align-items-end mb-4 pp-reveal pp-section-head">
-            <div>
-                <span class="pp-eyebrow">Insights</span>
-                <h2 class="mt-2 mb-1">Latest From Our Blog</h2>
-                <p class="mb-0">Property tips, market insights and guides.</p>
-            </div>
-            <a href="#" class="pp-btn-ghost d-none d-md-inline-block">View Blog</a>
-        </div>
-
-        <div class="row g-4">
-
-            @php
-                $blogSeeds = ['blog-a','blog-b','blog-c'];
-            @endphp
-
-            @for($i = 1; $i <= 3; $i++)
-
-                <div class="col-md-4 pp-reveal" style="transition-delay:{{ $i * 0.07 }}s;">
-
-                    <article class="pp-card h-100">
-
-                        <div class="pp-blog-img">
-                            <img src="https://picsum.photos/seed/{{ $blogSeeds[$i-1] }}/500/340" alt="Blog cover" loading="lazy">
-                        </div>
-
-                        <div class="pp-card-body">
-
-                            <span class="pp-eyebrow">Property Guide</span>
-
-                            <h5 class="fw-bold mt-2" style="font-size:1.05rem; line-height:1.35;">
-                                Important Things to Know Before Buying a Property
-                            </h5>
-
-                            <p class="text-muted small">
-                                Helpful information for property buyers and investors.
-                            </p>
-
-                            <a href="#" class="pp-read-more">
-                                Read More
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                            </a>
-
-                        </div>
-
-                    </article>
-
-                </div>
-
-            @endfor
-
-        </div>
-
-    </div>
-
-</section>
-
-{{-- =========================================================
-APP DOWNLOAD BANNER
-========================================================= --}}
-
-<section class="py-4 py-md-5">
-
-    <div class="container">
-
-        <div class="pp-app pp-reveal">
-
-            <div class="row align-items-center position-relative">
-
-                <div class="col-lg-8">
-                    <span class="pp-eyebrow" style="color:#7CFFB2;">On The Go</span>
-                    <h2 class="mt-2 mb-2" style="color:#fff;">Search properties from your pocket</h2>
-                    <p class="mb-4" style="color:rgba(255,255,255,.78); max-width:460px;">
-                        Get instant alerts, save your favorite listings and chat
-                        with owners — download the app for free.
-                    </p>
-
-                    <div class="d-flex gap-3 flex-wrap">
-                        <a href="#" class="pp-store-badge">
-                            <i class="bi bi-apple fs-4"></i>
-                            <span><small>Download on the</small><strong>App Store</strong></span>
-                        </a>
-                        <a href="#" class="pp-store-badge">
-                            <i class="bi bi-google-play fs-4"></i>
-                            <span><small>Get it on</small><strong>Google Play</strong></span>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-{{-- =========================================================
-CALL TO ACTION
-========================================================= --}}
-
-<section class="py-5">
-
-    <div class="container">
-
-        <div class="pp-cta pp-reveal">
-
-            <span class="pp-eyebrow" style="color:#fff;">List With Confidence</span>
-
-            <h2 class="mb-3 mt-3">Looking to List Your Property?</h2>
-
-            <p class="mb-4" style="color:rgba(255,255,255,.85); max-width:520px; margin-inline:auto;">
-                Create your property listing and reach potential
-                buyers and tenants across the region — completely free to post.
-            </p>
-
-            @auth
-                <a href="{{ route('user.properties.create') }}" class="pp-btn-ghost" style="background:#fff;">
-                    List Your Property
-                </a>
-            @else
-                <a href="{{ route('register') }}" class="pp-btn-ghost" style="background:#fff;">
-                    Get Started
-                </a>
-            @endauth
-
-        </div>
-
-    </div>
-
-</section>
 
 </div>{{-- /.pp-scope --}}
 
@@ -609,6 +699,180 @@ CALL TO ACTION
             });
         });
     })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const tabs = document.querySelectorAll('.pp-tab');
+    const listingTypeInput =
+        document.getElementById('listing_type');
+
+    tabs.forEach(function (tab) {
+
+        tab.addEventListener('click', function () {
+
+            tabs.forEach(function (item) {
+
+                item.classList.remove('active');
+
+            });
+
+            this.classList.add('active');
+
+            listingTypeInput.value =
+                this.dataset.listingType || '';
+
+        });
+
+    });
+
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const input = document.getElementById('property-location-search');
+    const suggestions = document.getElementById('location-suggestions');
+
+    const cityInput = document.getElementById('search_city_id');
+    const stateInput = document.getElementById('search_state_id');
+
+    let timer;
+
+
+    input.addEventListener('input', function () {
+
+        clearTimeout(timer);
+
+        const value = this.value.trim();
+
+        cityInput.value = '';
+        stateInput.value = '';
+
+        if (value.length < 2) {
+            suggestions.classList.add('d-none');
+            suggestions.innerHTML = '';
+            return;
+        }
+
+
+        timer = setTimeout(function () {
+
+            fetch(
+                `{{ route('ajax.property.locations') }}?q=${encodeURIComponent(value)}`
+            )
+            .then(response => response.json())
+            .then(data => {
+
+                suggestions.innerHTML = '';
+
+                if (!data.length) {
+                    suggestions.innerHTML = `
+                        <div class="p-3 text-muted">
+                            No locations found
+                        </div>
+                    `;
+
+                    suggestions.classList.remove('d-none');
+                    return;
+                }
+
+
+                data.forEach(function (location) {
+
+                    const item = document.createElement('button');
+
+                    item.type = 'button';
+
+                    item.className =
+                        'w-100 border-0 bg-white text-start p-3';
+
+                    item.innerHTML = `
+                        <div class="fw-semibold">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            ${location.name}
+                        </div>
+
+                        <small class="text-muted">
+                            ${location.type === 'city'
+                                ? 'City'
+                                : 'State'}
+                            ${location.state_name
+                                ? ' · ' + location.state_name
+                                : ''}
+                        </small>
+                    `;
+
+
+                    item.addEventListener('click', function () {
+
+                        input.value = location.name;
+
+                        cityInput.value =
+                            location.city_id ?? '';
+
+                        stateInput.value =
+                            location.state_id ?? '';
+
+                        suggestions.classList.add('d-none');
+
+                    });
+
+
+                    suggestions.appendChild(item);
+
+                });
+
+
+                suggestions.classList.remove('d-none');
+
+            })
+            .catch(function () {
+
+                suggestions.classList.add('d-none');
+
+            });
+
+        }, 300);
+
+    });
+
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function (event) {
+
+        if (
+            !input.contains(event.target) &&
+            !suggestions.contains(event.target)
+        ) {
+            suggestions.classList.add('d-none');
+        }
+
+    });
+
+
+    // Tabs
+    const tabs = document.querySelectorAll('.pp-tab');
+    const listingType = document.getElementById('listing_type');
+
+    tabs.forEach(function (tab) {
+
+        tab.addEventListener('click', function () {
+
+            tabs.forEach(function (item) {
+                item.classList.remove('active');
+            });
+
+            this.classList.add('active');
+
+            listingType.value =
+                this.dataset.listingType || '';
+
+        });
+
+    });
+
+});
 </script>
 @endpush
 

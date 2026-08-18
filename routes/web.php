@@ -35,6 +35,11 @@ Route::get('/properties', [
     'index'
 ])->name('properties.index');
 
+Route::get('/ajax/property-locations', [
+    FrontendPropertyController::class,
+    'locations'
+])->name('ajax.property.locations');
+
 Route::get('/properties/{slug}', [
     FrontendPropertyController::class,
     'show'

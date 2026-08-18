@@ -16,6 +16,7 @@
 
 @vite([
     'resources/css/app.css',
+    'resources/css/frontend/property-detail.css',
     'resources/js/app.js'
 ])
 

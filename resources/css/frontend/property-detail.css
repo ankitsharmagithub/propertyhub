@@ -1,0 +1,113 @@
+/* =========================================================
+   PROPERTY DETAIL PAGE COMPLETE CSS
+   ========================================================= */
+
+/* Breadcrumb Styling */
+.breadcrumb {
+    font-size: 0.9rem;
+}
+
+/* Gallery Images & Hover Effects */
+.row.g-3 img {
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.row.g-3 a:hover img {
+    transform: scale(1.02);
+}
+
+/* Gallery Plus Overlay Badge */
+.position-absolute.bg-dark.bg-opacity-75 {
+    transition: background-color 0.2s ease;
+}
+
+.row.g-3 a:hover .bg-opacity-75 {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Cards & Shadows */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Sticky Sidebar for Owner/Contact */
+.sticky-lg-top {
+    z-index: 1020;
+}
+
+/* Property Header Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+}
+
+/* Property Details Grid Text */
+.card-body .text-muted.small {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Specifications Table */
+table.table-bordered th, 
+table.table-bordered td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Floor Plans Card Hover Effects */
+.border.rounded {
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.border.rounded:hover {
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+}
+
+/* Documents List Group */
+.list-group-item {
+    transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Modal Dark Theme & Carousel */
+.modal-content.bg-dark {
+    background-color: #111111 !important;
+}
+
+.carousel-control-prev, 
+.carousel-control-next {
+    width: 6%;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.carousel-control-prev:hover, 
+.carousel-control-next:hover {
+    opacity: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+    .sticky-lg-top {
+        position: relative !important;
+        top: 0 !important;
+    }
+    
+    .img-fluid[style*="height:500px"] {
+        height: 350px !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .img-fluid[style*="height:500px"] {
+        height: 250px !important;
+    }
+}

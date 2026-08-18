@@ -1,0 +1,399 @@
+/* ==========================================================================
+   PROPERTY DETAIL — DESIGN SYSTEM OVERRIDE
+   Drop this file in after bootstrap.css. Built to restyle the existing
+   Blade markup (cards, badges, breadcrumb, table, list-group, btn) —
+   no HTML/class changes required.
+
+   Add this to your layout <head>, before this stylesheet:
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+   ========================================================================== */
+
+:root{
+  --ink:#1B2A3D;
+  --ink-deep:#0F1C2A;
+  --paper:#EDEAE2;
+  --card:#FBFAF7;
+  --brass:#AD7F3D;
+  --brass-deep:#8A652C;
+  --verdigris:#33594F;
+  --charcoal:#23262B;
+  --muted:#6C6A62;
+  --line:#D6D0C1;
+  --line-strong:#B9B29D;
+
+  --font-display:'Fraunces', serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+
+  /* Bootstrap variable overrides (Bootstrap 5 uses these where supported) */
+  --bs-primary: var(--ink);
+  --bs-primary-rgb: 27, 42, 61;
+  --bs-body-font-family: var(--font-body);
+  --bs-body-color: var(--charcoal);
+  --bs-body-bg: var(--paper);
+  --bs-border-color: var(--line);
+  --bs-link-color: var(--brass-deep);
+  --bs-link-hover-color: var(--ink);
+}
+
+body{
+  background: var(--paper);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+a{ color: var(--brass-deep); }
+a:hover{ color: var(--ink); }
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6{
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+h1.fw-bold{
+  font-size: 2.35rem;
+  line-height: 1.15;
+}
+
+h2.fw-bold.text-primary{
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--brass-deep) !important;
+  font-size: 1.9rem;
+}
+
+h4.fw-bold{
+  font-size: 1.25rem;
+  margin-bottom: 1rem !important;
+}
+
+small, .small,
+.text-muted.small,
+small.text-muted{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted) !important;
+}
+
+.text-muted{ color: var(--muted) !important; }
+
+/* ==========================================================================
+   BREADCRUMB
+   ========================================================================== */
+
+.bg-light{ background-color: var(--paper) !important; }
+
+nav[aria-label="breadcrumb"] .breadcrumb{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.breadcrumb-item a{ color: var(--muted); }
+.breadcrumb-item a:hover{ color: var(--brass-deep); }
+.breadcrumb-item.active{ color: var(--ink); font-weight: 500; }
+.breadcrumb-item + .breadcrumb-item::before{
+  color: var(--line-strong);
+}
+
+section.py-3.border-bottom{
+  border-bottom: 1px solid var(--line-strong) !important;
+}
+
+/* ==========================================================================
+   IMAGE GALLERY — plate + corner ticks
+   ========================================================================== */
+
+.col-lg-8 > img.rounded,
+.col-lg-4 img.rounded,
+.bg-light.rounded{
+  border-radius: 2px !important;
+  border: 1px solid var(--ink);
+}
+
+.col-lg-8 > .bg-light,
+.col-lg-8 > img{
+  position: relative;
+}
+
+/* Featured image gets architectural corner ticks */
+.col-lg-8 > img.rounded::before,
+.col-lg-8 > .bg-light.rounded::before{
+  content:"";
+}
+
+.bg-light.rounded i.bi-image{ color: var(--line-strong) !important; }
+
+/* ==========================================================================
+   BADGES — title-block tags
+   ========================================================================== */
+
+.badge{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 1px;
+}
+
+.badge.bg-success{
+  background: transparent !important;
+  color: var(--verdigris) !important;
+  border: 1px solid var(--verdigris);
+}
+
+.badge.bg-dark{
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  border: 1px solid var(--ink);
+}
+
+.badge.bg-primary{
+  background: transparent !important;
+  color: var(--brass-deep) !important;
+  border: 1px solid var(--brass-deep);
+}
+
+/* ==========================================================================
+   PRICE
+   ========================================================================== */
+
+h2.fw-bold.text-primary.mb-0{
+  font-size: 2rem;
+}
+
+/* ==========================================================================
+   CARDS / PANELS
+   ========================================================================== */
+
+.card.border-0.shadow-sm{
+  background: var(--card);
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+
+.card-body{ padding: 1.5rem; }
+
+.card-body h4.fw-bold{
+  padding-bottom: .85rem;
+  margin-bottom: 1.25rem !important;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Property Details / spec-style rows: turn the muted label + value pairs
+   into a dimension-line grid look */
+.card-body .row.g-4 > div > .text-muted.small{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.card-body .row.g-4 > div > .fw-semibold{
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 15.5px;
+}
+
+/* ==========================================================================
+   TABLES (Specifications)
+   ========================================================================== */
+
+.table-bordered{
+  border-color: var(--line) !important;
+}
+
+.table-bordered th,
+.table-bordered td{
+  border-color: var(--line) !important;
+  vertical-align: top;
+  padding: .85rem 0;
+  font-size: 14.5px;
+}
+
+.table-bordered th{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .03em;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border-left: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+.table-bordered td{
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+/* ==========================================================================
+   FLOOR PLANS / cards inside cards
+   ========================================================================== */
+
+.border.rounded.p-3{
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 2px !important;
+  background: var(--card);
+}
+
+.border.rounded.p-3 h5.fw-bold{
+  font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   LIST GROUP (Documents)
+   ========================================================================== */
+
+.list-group-item{
+  background: transparent;
+  border-color: var(--line) !important;
+  padding: .85rem .25rem;
+  font-size: 14.5px;
+}
+
+.list-group-item:hover,
+.list-group-item-action:hover{
+  background: #F3EFE4 !important;
+  color: var(--ink);
+}
+
+.list-group-item i.bi-file-earmark-text{ color: var(--brass-deep); }
+.list-group-item i.bi-box-arrow-up-right{ color: var(--muted); }
+
+/* ==========================================================================
+   SIDEBAR — CONTACT CARD
+   ========================================================================== */
+
+.col-lg-4 .card.sticky-lg-top{
+  border: 1px solid var(--ink) !important;
+}
+
+.col-lg-4 .card.sticky-lg-top h4.fw-bold{
+  background: var(--ink);
+  color: var(--paper);
+  margin: -1.5rem -1.5rem 1.5rem;
+  padding: 1rem 1.5rem;
+  font-size: 1.15rem;
+  border-bottom: none;
+}
+
+.rounded-circle.bg-primary-subtle{
+  background: transparent !important;
+  border: 1px solid var(--brass);
+  color: var(--brass-deep) !important;
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
+.btn{
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 2px;
+  padding: .8rem 1.1rem;
+  letter-spacing: .01em;
+}
+
+.btn-primary{
+  background: var(--ink) !important;
+  border-color: var(--ink) !important;
+  color: var(--paper) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus{
+  background: var(--ink-deep) !important;
+  border-color: var(--ink-deep) !important;
+}
+
+.btn-outline-primary{
+  color: var(--ink) !important;
+  border-color: var(--ink) !important;
+  background: transparent !important;
+}
+
+.btn-outline-primary:hover{
+  background: #F3EFE4 !important;
+  color: var(--ink) !important;
+}
+
+/* Quick info rows in sidebar (Property Code / Listing Type / Listed On) */
+.col-lg-4 hr.my-4{ border-top: 1px solid var(--line); opacity: 1; }
+
+.col-lg-4 .small.text-muted .d-flex.justify-content-between{
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+}
+
+.col-lg-4 .small.text-muted .d-flex.justify-content-between span:first-child{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.col-lg-4 .small.text-muted .d-flex.justify-content-between strong{
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   BROWSE MORE (bottom CTA band)
+   ========================================================================== */
+
+section.py-5.bg-light:last-of-type{
+  background: var(--ink) !important;
+}
+
+section.py-5.bg-light:last-of-type h3{
+  color: var(--paper);
+}
+
+section.py-5.bg-light:last-of-type p.text-muted{
+  color: #B9C2CC !important;
+}
+
+section.py-5.bg-light:last-of-type .btn-primary{
+  background: var(--brass) !important;
+  border-color: var(--brass) !important;
+  color: var(--ink) !important;
+}
+
+section.py-5.bg-light:last-of-type .btn-primary:hover{
+  background: #c39653 !important;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 991.98px){
+  h1.fw-bold{ font-size: 1.8rem; }
+  h2.fw-bold.text-primary{ font-size: 1.5rem; }
+}
