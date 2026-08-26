@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+         if (Schema::hasColumn('properties', 'developer_id')) {
+        return;
+    }
         Schema::table('properties', function (Blueprint $table) {
 
     $table->foreignId('developer_id')

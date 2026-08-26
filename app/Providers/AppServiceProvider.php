@@ -59,7 +59,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
      View::composer('layouts.frontend.navbar', function ($view) {
         $developers = Category::where('status', 1)->orderBy('sort_order', 'asc')->get();
         $view->with('developers', $developers);

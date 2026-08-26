@@ -11,13 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('properties', function (Blueprint $table) {
-        $table->foreignId('developer_id')
-        ->nullable()
-        ->after('property_type_id')
-        ->constrained('developers')
-        ->nullOnDelete();
-});
+
     }
 
     /**
@@ -25,9 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('properties', function (Blueprint $table) {
-        $table->dropForeign(['developer_id']);
-        $table->dropColumn('developer_id');
-            });
+
     }
 };
