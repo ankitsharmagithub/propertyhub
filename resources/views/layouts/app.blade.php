@@ -4,53 +4,46 @@
 <head>
 
     @include('layouts.header')
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>
 
-<div class="content-wrapper container-fluid">
+    <div class="content-wrapper container-fluid">
 
-    @if(auth()->check() && auth()->user()->role == 'admin')
+        @if (auth()->check() && auth()->user()->role == 'admin')
+            @include('admin.layouts.sidebar')
+        @else
+            @include('user.layouts.sidebar')
+        @endif
 
-        @include('admin.layouts.sidebar')
+        <div class="main-content">
 
-    @else
+            @include('layouts.topbar')
 
-        @include('user.layouts.sidebar')
+            <div class="content-wrapper">
 
-    @endif
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
 
-    <div class="main-content">
+                        {{ session('success') }}
 
-        @include('layouts.topbar')
+                        <button class="btn-close" data-bs-dismiss="alert">
+                        </button>
 
-        <div class="content-wrapper">
+                    </div>
+                @endif
 
-            @if(session('success'))
+                @yield('content')
 
-                <div class="alert alert-success alert-dismissible fade show">
-
-                    {{ session('success') }}
-
-                    <button
-                        class="btn-close"
-                        data-bs-dismiss="alert">
-                    </button>
-
-                </div>
-
-            @endif
-
-            @yield('content')
+            </div>
 
         </div>
 
     </div>
 
-</div>
-
-@include('layouts.footer')
-@stack('scripts')
+    @include('layouts.footer')
+    @stack('scripts')
 </body>
+
 </html>

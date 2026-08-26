@@ -97,30 +97,21 @@ class PropertyImageController extends Controller
 
 
 
-    public function destroy(PropertyImage $image)
-    {
-
-        if (
-            $image->image &&
-            Storage::disk('public')
-            ->exists('properties/gallery/'.$image->image)
-        ) {
-
-
-            Storage::disk('public')
-                ->delete('properties/gallery/'.$image->image);
-
-        }
-
-
-        $image->delete();
-
-
-        return back()->with(
-            'success',
-            'Image deleted successfully.'
-        );
-
+public function destroy(PropertyImage $image)
+{
+    if ($image->image && Storage::disk('public')->exists('properties/gallery/' . $image->image)) {
+        Storage::disk('public')->delete('properties/gallery/' . $image->image);
     }
+
+    $image->delete();
+
+
+    if (request()->ajax()) {
+        return response()->json(['success' => true]);
+    }
+
+
+    return back()->with('success', 'Image deleted successfully.');
+}
 
 }

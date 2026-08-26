@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use App\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\CategoryRepository;
@@ -57,6 +59,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+
+     View::composer('layouts.frontend.navbar', function ($view) {
+        $developers = Category::where('status', 1)->orderBy('sort_order', 'asc')->get();
+        $view->with('developers', $developers);
+    });
     }
 }

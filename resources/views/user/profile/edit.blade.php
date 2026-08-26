@@ -20,7 +20,7 @@
                 </ul>
             </div>
         @endif
-        <form method="POST" action="{{ route('profile.update') }}">
+        <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
 
             @csrf
             @method('PATCH')
@@ -38,7 +38,7 @@
                 <x-input-label for="email" :value="__('Email')" />
 
                 <x-text-input id="email" class="block mt-1.5 w-full" type="email" name="email" :value="old('email', $user->email)"
-                    required />
+                    required readonly />
 
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
@@ -50,6 +50,21 @@
                     required maxlength="10" />
 
                 <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+            </div>
+            <div class="mt-4">
+                <x-input-label for="profile_image" :value="__('Profile Image')" />
+
+                @if ($user->profile_image)
+                    <div class="mb-2">
+                        <img src="{{ asset('storage/' . $user->profile_image) }}" alt="Profile Image" width="100"
+                            height="100" style="object-fit: cover; border-radius: 50%;">
+                    </div>
+                @endif
+
+                <input id="profile_image" class="block mt-1.5 w-full" type="file" name="profile_image"
+                    accept="image/*" />
+
+                <x-input-error :messages="$errors->get('profile_image')" class="mt-2" />
             </div>
 
             <div class="mt-4">

@@ -35,7 +35,7 @@ class PropertyController extends Controller
             $request->search,
             Auth::id()
         );
-        
+
 
         return view(
             'user.properties.index',
@@ -99,6 +99,24 @@ class PropertyController extends Controller
             'galleryDeleteRoute' =>
                 'user.properties.gallery.destroy',
         ]);
+        $draft = session('user_property_draft', []);
+
+    if (
+        session('user_property_draft_expires') &&
+        now()->greaterThan(
+            session('user_property_draft_expires')
+        )
+    ) {
+        session()->forget([
+            'user_property_draft',
+            'user_property_draft_expires',
+        ]);
+
+        $draft = [];
+    }
+
+    // tumhare existing variables/data
+    return view('user.properties.create', compact('draft'));
     }
 
     /*
@@ -139,85 +157,12 @@ class PropertyController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function edit($id)
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT
-        |--------------------------------------------------------------------------
-        | User sirf apni property edit kar sakega.
-        */
+    public function edit()
+{
+    $user = auth()->user();
 
-        $property = $this->propertyService->find(
-            $id,
-            Auth::id()
-        );
-
-        $categories = Category::where('status', 1)
-            ->orderBy('name')
-            ->get();
-
-        $propertyTypes = PropertyType::where('status', 1)
-            ->orderBy('name')
-            ->get();
-
-        $states = State::where('status', 1)
-            ->orderBy('name')
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Only selected state's cities
-        |--------------------------------------------------------------------------
-        */
-
-        $cities = City::where(
-                'state_id',
-                $property->state_id
-            )
-            ->where('status', 1)
-            ->orderBy('name')
-            ->get();
-
-        $amenities = Amenity::where('status', 1)
-            ->orderBy('name')
-            ->get();
-             $developers = Developer::where('status', true)
-             ->orderBy('name')
-             ->get();
-
-        return view('property.edit', compact(
-            'property',
-            'categories',
-            'propertyTypes',
-            'states',
-            'cities',
-            'amenities',
-            'developers'
-        ))->with([
-
-            // User update route
-            'formAction' => route(
-                'user.properties.update',
-                $property->id
-            ),
-
-            // Cancel / Back
-            'indexRoute' => route(
-                'user.properties.index'
-            ),
-
-            // User gallery upload route
-            'galleryStoreRoute' => route(
-                'user.properties.gallery.store',
-                $property->id
-            ),
-
-            // User gallery delete route
-            'galleryDeleteRoute' =>
-                'user.properties.gallery.destroy',
-        ]);
-    }
+    return view('user.profile.edit', compact('user'));
+}
 
     /*
     |--------------------------------------------------------------------------

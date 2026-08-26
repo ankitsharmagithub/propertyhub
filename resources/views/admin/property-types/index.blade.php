@@ -4,145 +4,131 @@
 
 @section('content')
 
-<div class="card">
+    <div class="card">
 
-    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
 
-        <h5 class="mb-0">Property Types</h5>
+            <h5 class="mb-0">Property Types</h5>
 
-        <a href="{{ route('admin.property-types.create') }}" class="btn btn-primary">
-            Add Property Type
-        </a>
+            <a href="{{ route('admin.property-types.create') }}" class="btn btn-primary">
+                Add Property Type
+            </a>
 
-    </div>
+        </div>
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <form method="GET" class="mb-3">
+            <form method="GET" class="mb-3">
 
-            <div class="row">
+                <div class="row">
 
-                <div class="col-md-4">
+                    <div class="col-md-4">
 
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ request('search') }}"
-                        class="form-control"
-                        placeholder="Search Property Type">
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control"
+                            placeholder="Search Property Type">
 
-                </div>
+                    </div>
 
-                <div class="col-md-2">
+                    <div class="col-md-2">
 
-                    <button class="btn btn-primary">
-                        Search
-                    </button>
+                        <button class="btn btn-primary">
+                            Search
+                        </button>
+
+                    </div>
 
                 </div>
 
-            </div>
+            </form>
 
-        </form>
+            <table class="table table-bordered">
 
-        <table class="table table-bordered">
+                <thead>
 
-            <thead>
+                    <tr>
 
-            <tr>
+                        <th>ID</th>
 
-                <th>ID</th>
+                        <th>Name</th>
 
-                <th>Name</th>
+                        <th>Slug</th>
 
-                <th>Slug</th>
+                        <th>Status</th>
 
-                <th>Status</th>
+                        <th>Action</th>
 
-                <th>Action</th>
+                    </tr>
 
-            </tr>
+                </thead>
 
-            </thead>
+                <tbody>
 
-            <tbody>
+                    @forelse($propertyTypes as $propertyType)
+                        <tr>
 
-            @forelse($propertyTypes as $propertyType)
+                            <td>{{ $propertyType->id }}</td>
 
-                <tr>
+                            <td>{{ $propertyType->name }}</td>
 
-                    <td>{{ $propertyType->id }}</td>
+                            <td>{{ $propertyType->slug }}</td>
 
-                    <td>{{ $propertyType->name }}</td>
+                            <td>
 
-                    <td>{{ $propertyType->slug }}</td>
+                                @if ($propertyType->status)
+                                    <span class="badge bg-success">Active</span>
+                                @else
+                                    <span class="badge bg-danger">Inactive</span>
+                                @endif
 
-                    <td>
+                            </td>
 
-                        @if($propertyType->status)
+                            <td>
 
-                            <span class="badge bg-success">Active</span>
+                                <a href="{{ route('admin.property-types.edit', $propertyType->id) }}"
+                                    class="btn btn-sm btn-warning">
+                                    Edit
+                                </a>
 
-                        @else
+                                <form action="{{ route('admin.property-types.destroy', $propertyType->id) }}" method="POST"
+                                    class="d-inline">
 
-                            <span class="badge bg-danger">Inactive</span>
+                                    @csrf
+                                    @method('DELETE')
 
-                        @endif
+                                    <button onclick="return confirm('Delete this Property Type?')"
+                                        class="btn btn-sm btn-danger">
 
-                    </td>
+                                        Delete
 
-                    <td>
+                                    </button>
 
-                        <a
-                            href="{{ route('admin.property-types.edit',$propertyType->id) }}"
-                            class="btn btn-sm btn-warning">
-                            Edit
-                        </a>
+                                </form>
 
-                        <form
-                            action="{{ route('admin.property-types.destroy',$propertyType->id) }}"
-                            method="POST"
-                            class="d-inline">
+                            </td>
 
-                            @csrf
-                            @method('DELETE')
+                        </tr>
 
-                            <button
-                                onclick="return confirm('Delete this Property Type?')"
-                                class="btn btn-sm btn-danger">
+                    @empty
 
-                                Delete
+                        <tr>
 
-                            </button>
+                            <td colspan="5" class="text-center">
 
-                        </form>
+                                No Record Found
 
-                    </td>
+                            </td>
 
-                </tr>
+                        </tr>
+                    @endforelse
 
-            @empty
+                </tbody>
 
-                <tr>
+            </table>
 
-                    <td colspan="5" class="text-center">
+            {{ $propertyTypes->links() }}
 
-                        No Record Found
-
-                    </td>
-
-                </tr>
-
-            @endforelse
-
-            </tbody>
-
-        </table>
-
-        {{ $propertyTypes->links() }}
+        </div>
 
     </div>
-
-</div>
 
 @endsection

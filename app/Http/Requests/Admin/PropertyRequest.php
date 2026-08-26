@@ -4,6 +4,8 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class PropertyRequest extends FormRequest
 {
@@ -39,52 +41,52 @@ class PropertyRequest extends FormRequest
                 'string'
             ],
             'price' => [
-                'required',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'numeric',
                 'min:0'
             ],
             'bedrooms' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'integer',
                 'min:0'
             ],
             'bathrooms' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'integer',
                 'min:0'
             ],
             'balconies' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'integer',
                 'min:0'
             ],
             'parking' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'integer',
                 'min:0'
             ],
             'floor' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'integer',
                 'min:0'
             ],
             'total_floors' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'integer',
                 'min:0'
             ],
             'area' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'numeric',
                 'min:0'
             ],
             'area_unit' => [
-                'required',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'string',
                 'max:100'
             ],
             'listing_type' => [
-    'required',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     Rule::in([
         'sale',
         'rent',
@@ -92,48 +94,48 @@ class PropertyRequest extends FormRequest
     ]),
 ],
             'developer_id' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'exists:developers,id',
 ],
 
 'project_status' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:100',
 ],
 
 'possession_date' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'date',
 ],
 
 'rera_number' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:255',
 ],
 
 'rera_status' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:100',
 ],
             'address' => [
-                'required',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'string',
                 'max:255'
             ],
             'pincode' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'string',
                 'max:20'
             ],
             'latitude' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'numeric'
             ],
             'longitude' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'numeric'
             ],
             'featured_image' => [
@@ -143,7 +145,7 @@ class PropertyRequest extends FormRequest
                 'max:2048'
             ],
             'images' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'array',
                 'max:20'
             ],
@@ -152,8 +154,10 @@ class PropertyRequest extends FormRequest
                 'mimes:jpg,jpeg,png,webp',
                 'max:2048'
             ],
+            'delete_gallery' => 'nullable|array',
+            'delete_gallery.*' => 'integer|exists:property_images,id',
             'amenities' => [
-                'nullable',
+                $this->input('action') === 'publish' ? 'required' : 'nullable',
                 'array'
             ],
             'amenities.*' => [
@@ -166,36 +170,36 @@ class PropertyRequest extends FormRequest
 */
 
 'specifications' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'array',
 ],
 
 'specifications.*.title' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:255',
 ],
 
 'specifications.*.value' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:1000',
 ],
 
 'specifications.*.description' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:2000',
 ],
 
 'specifications.*.sort_order' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'integer',
     'min:0',
 ],
 
 'specifications.*.status' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'boolean',
 ],
 /*
@@ -205,55 +209,56 @@ class PropertyRequest extends FormRequest
 */
 
 'floor_plans' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'array',
 ],
+'floor_plans.*.id' => 'nullable|integer',
 
 'floor_plans.*.title' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:255',
 ],
 
 'floor_plans.*.configuration' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:255',
 ],
 
 'floor_plans.*.area' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'numeric',
     'min:0',
 ],
 
 'floor_plans.*.area_unit' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'string',
     'max:100',
 ],
 
 'floor_plans.*.price' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'numeric',
     'min:0',
 ],
 
 'floor_plans.*.image' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'image',
     'mimes:jpg,jpeg,png,webp',
     'max:2048',
 ],
 
 'floor_plans.*.sort_order' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'integer',
     'min:0',
 ],
 
 'floor_plans.*.status' => [
-    'nullable',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     'boolean',
 ],
             'meta_title' => [
@@ -265,9 +270,9 @@ class PropertyRequest extends FormRequest
                 'nullable',
                 'string'
             ],
-            
+
             'availability' => [
-    'required',
+    $this->input('action') === 'publish' ? 'required' : 'nullable',
     Rule::in([
         'available',
         'unavailable',
@@ -283,6 +288,35 @@ class PropertyRequest extends FormRequest
             ],
         ];
     }
+    protected function failedValidation(Validator $validator)
+{
+    $key = $this->isAdminPropertyRequest()
+        ? 'admin_property_draft'
+        : 'user_property_draft';
+
+    $draft = $this->except([
+        'featured_image',
+        'images',
+        'floor_plans',
+    ]);
+
+    session([
+        $key => $draft,
+        $key . '_expires' => now()->addHours(3),
+    ]);
+
+    throw new HttpResponseException(
+        redirect()
+            ->back()
+            ->withErrors($validator)
+            ->withInput()
+    );
+}
+
+private function isAdminPropertyRequest(): bool
+{
+    return $this->routeIs('admin.properties.*');
+}
     public function messages(): array
     {
         return [

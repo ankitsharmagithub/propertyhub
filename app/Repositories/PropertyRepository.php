@@ -345,27 +345,7 @@ class PropertyRepository implements PropertyRepositoryInterface
         }
     }
 
-    /**
-     * Delete selected gallery images.
-     */
-    private function deleteGalleryImages(Property $property, array $imageIds): void
-    {
-        if (empty($imageIds)) {
-            return;
-        }
 
-        $images = $property->images()->whereIn('id', $imageIds)->get();
-
-        foreach ($images as $image) {
-            if ($image->image) {
-                $path = 'properties/gallery/' . $image->image;
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
-            }
-            $image->delete();
-        }
-    }
 
     /**
      * Save specifications (create new records).
@@ -430,27 +410,78 @@ class PropertyRepository implements PropertyRepositoryInterface
         }
     }
 
-    /**
-     * Update floor plans (delete all existing and recreate).
-     */
-    private function updateFloorPlans(Property $property, array $floorPlans, array &$uploadedFiles = []): void
-    {
-        // Delete old floor plans and their images
-        $existing = $property->floorPlans()->get();
-        foreach ($existing as $plan) {
-            if ($plan->image) {
-                $path = 'properties/floor-plans/' . $plan->image;
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
-            }
-            $plan->delete();
+    // Gallery Delete (इसे अपने पुराने वाले से बदल दें)
+private function deleteGalleryImages(Property $property, array $imageIds): void
+{
+    if (empty($imageIds)) return;
+
+    $images = $property->images()->whereIn('id', $imageIds)->get();
+
+    foreach ($images as $image) {
+        // Storage se file delete karein
+        if ($image->image && Storage::disk('public')->exists('properties/gallery/' . $image->image)) {
+            Storage::disk('public')->delete('properties/gallery/' . $image->image);
+        }
+        // Database se record delete karein
+        $image->delete();
+    }
+}
+
+// Floor Plans Update (इसे अपने पुराने वाले से बदल दें)
+private function updateFloorPlans(Property $property, array $floorPlans, array &$uploadedFiles = []): void
+{
+    $existingPlans = $property->floorPlans()->get()->keyBy('id');
+
+    foreach ($floorPlans as $index => $planData) {
+        $plan = null;
+
+        // अगर ID मौजूद है, तो Update करें, नहीं तो Create करें
+        if (!empty($planData['id']) && $existingPlans->has($planData['id'])) {
+            $plan = $existingPlans->get($planData['id']);
+        } else {
+            $plan = new PropertyFloorPlan();
+            $plan->property_id = $property->id;
         }
 
-        // Save new ones
-        $this->saveFloorPlans($property, $floorPlans, $uploadedFiles);
+        // बाकी फील्ड्स
+        $plan->title = $planData['title'] ?? null;
+        $plan->configuration = $planData['configuration'] ?? null;
+        $plan->area = $planData['area'] ?? null;
+        $plan->area_unit = $planData['area_unit'] ?? null;
+        $plan->price = $planData['price'] ?? null;
+        $plan->sort_order = $planData['sort_order'] ?? ($index + 1);
+        $plan->status = !empty($planData['status']);
+
+        // Image Logic (अब बिल्कुल सुरक्षित)
+        if (isset($planData['image']) && $planData['image'] instanceof \Illuminate\Http\UploadedFile) {
+            if ($plan->image) {
+                Storage::disk('public')->delete('properties/floor-plans/' . $plan->image);
+            }
+            $image = $planData['image'];
+            $imageName = time() . '_' . $index . '_' . $image->getClientOriginalName();
+            $image->storeAs('properties/floor-plans', $imageName, 'public');
+            $plan->image = $imageName;
+        }
+        elseif (isset($planData['delete_image']) && $planData['delete_image'] == 1) {
+            if ($plan->image) {
+                Storage::disk('public')->delete('properties/floor-plans/' . $plan->image);
+            }
+            $plan->image = null;
+        }
+        // अगर नई इमेज या Delete का चेकबॉक्स नहीं है, तो पुरानी इमेज वैसे ही रहेगी
+
+        $plan->save();
     }
 
+    // जिन IDs को हटाया गया है, उन्हें डिलीट करें
+    $submittedIds = collect($floorPlans)->pluck('id')->filter()->all();
+    $existingPlans->whereNotIn('id', $submittedIds)->each(function ($plan) {
+        if ($plan->image) {
+            Storage::disk('public')->delete('properties/floor-plans/' . $plan->image);
+        }
+        $plan->delete();
+    });
+}
     /**
      * Generate a unique property code.
      */

@@ -37,6 +37,9 @@ class PropertyController extends Controller
      */
  public function create()
 {
+
+
+
     $categories = Category::where('status', 1)
         ->orderBy('name')
         ->get();
@@ -75,6 +78,27 @@ class PropertyController extends Controller
         'galleryDeleteRoute' =>
             'admin.properties.gallery.destroy',
     ]);
+
+$draft = session('admin_property_draft', []);
+
+    if (
+        session('admin_property_draft_expires') &&
+        now()->greaterThan(
+            session('admin_property_draft_expires')
+        )
+    ) {
+        session()->forget([
+            'admin_property_draft',
+            'admin_property_draft_expires',
+        ]);
+
+        $draft = [];
+    }
+
+    // tumhare existing variables/data
+    return view('admin.properties.create', compact('draft'));
+
+
 }
     /**
      * Store Property
@@ -82,7 +106,7 @@ class PropertyController extends Controller
     public function store(PropertyRequest $request)
     {
     $data = $request->validated();
-    
+
 
         try {
 
@@ -168,6 +192,9 @@ class PropertyController extends Controller
      */
     public function update(PropertyRequest $request, $id)
     {
+
+       $data = $request->all();
+
         try {
 
             $this->propertyService->update(

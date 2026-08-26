@@ -2,1644 +2,1214 @@
 
 @section('title', ($property->meta_title ?: $property->title) . ' | Property Portal')
 
-@section(
-    'meta_description',
-    $property->meta_description
-        ?: Str::limit(
-            strip_tags($property->description ?? $property->title),
-            155
-        )
-)
+@section('meta_description', $property->meta_description ?: Str::limit(strip_tags($property->description ??
+    $property->title), 155))
 
 @section('content')
 
-{{-- =========================================================
+    {{-- =========================================================
 BREADCRUMB
 ========================================================= --}}
 
-<section class="py-3 border-bottom bg-light">
+    <main id="main">
 
-    <div class="container">
 
-        <nav aria-label="breadcrumb">
+        <section class="pp-breadcrumb-wrapper">
+            <div class="container-xl">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb pp-breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('home') }}">
+                                <i class="bi bi-house-door-fill me-1"></i>Home
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('properties.index') }}">
+                                Properties
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <span class="text-truncate">{{ $property->title }}</span>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </section>
 
-            <ol class="breadcrumb mb-0">
 
-                <li class="breadcrumb-item">
-                    <a href="{{ route('home') }}">
-                        Home
+
+
+        <!-- new detail page -->
+
+
+        <div class="property-detail-wrapper py-5">
+            <div class="container">
+
+                <!-- ============================================================
+                                            GALLERY SECTION
+                                            ============================================================ -->
+                <section class="mb-5">
+
+                    {{-- Collect all gallery images for the carousel --}}
+                    @php
+                        $allGalleryImages = $property->images ?? collect();
+                        $totalGallery = $allGalleryImages->count();
+                        $thumbnails = $allGalleryImages->take(4);
+                        $remainingThumbs = $totalGallery - 4;
+                    @endphp
+
+                    <div class="row g-3">
+
+                        {{-- MAIN FEATURED IMAGE --}}
+                        <div class="col-lg-7">
+                            <div class="gallery-main">
+                                @if ($property->featured_image)
+                                    <img src="{{ asset('storage/properties/featured/' . $property->featured_image) }}"
+                                        alt="{{ $property->title }}" data-bs-toggle="modal" data-bs-target="#galleryModal"
+                                        data-bs-slide-to="0" loading="lazy" />
+                                @else
+                                    <div class="img-placeholder w-100 h-100">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- THUMBNAIL GRID --}}
+                        <div class="col-lg-5">
+                            <div class="row g-3">
+
+                                @if ($thumbnails->count() > 0)
+
+                                    @foreach ($thumbnails as $index => $image)
+                                        @php
+                                            $slideIndex = $index + 1;
+                                            $isLast = $index === 3;
+                                            $showOverlay = $isLast && $remainingThumbs > 0;
+                                        @endphp
+
+                                        <div class="col-6">
+                                            <div class="gallery-thumb" data-bs-toggle="modal" data-bs-target="#galleryModal"
+                                                data-bs-slide-to="{{ $slideIndex }}">
+                                                <img src="{{ asset('storage/properties/gallery/' . $image->image) }}"
+                                                    alt="{{ $property->title }}" loading="lazy" />
+
+                                                @if ($showOverlay)
+                                                    <div class="overlay-count">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                        {{ $remainingThumbs }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    {{-- If fewer than 4 images, pad with placeholders --}}
+                                    @for ($i = $thumbnails->count(); $i < 4; $i++)
+                                        <div class="col-6">
+                                            <div class="gallery-thumb img-placeholder">
+                                                <i class="bi bi-image text-muted fs-3"></i>
+                                            </div>
+                                        </div>
+                                    @endfor
+                                @else
+                                    {{-- No gallery images — show 4 placeholders --}}
+                                    @for ($i = 0; $i < 4; $i++)
+                                        <div class="col-6">
+                                            <div class="gallery-thumb img-placeholder">
+                                                <i class="bi bi-image text-muted fs-3"></i>
+                                            </div>
+                                        </div>
+                                    @endfor
+
+                                @endif
+
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                </section>
+
+
+                <!-- ============================================================
+                                        MAIN CONTENT + SIDEBAR
+                                        ============================================================ -->
+                <div class="row">
+
+                    {{-- ============================================================
+        LEFT COLUMN
+        ============================================================ --}}
+                    <div class="col-lg-8">
+
+                        <div class="property-sticky-nav-wrapper mb-1">
+                            <nav class="property-sticky-nav" id="propertySubNav">
+                                <ul class="nav nav-pills flex-nowrap">
+                                    @if ($property->short_description || $property->description)
+                                        <li class="nav-item">
+                                            <a class="nav-link active" href="#sec-overview">Overview</a>
+                                        </li>
+                                    @endif
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#sec-details">Details</a>
+                                    </li>
+                                    @if ($property->amenities && $property->amenities->count())
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-amenities">Amenities</a>
+                                        </li>
+                                    @endif
+                                    @if ($property->specifications && $property->specifications->count())
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-specifications">Specifications</a>
+                                        </li>
+                                    @endif
+                                    @if (
+                                        $property->developer ||
+                                            $property->project_status ||
+                                            $property->possession_date ||
+                                            $property->rera_number ||
+                                            $property->rera_status)
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-project">Project Info</a>
+                                        </li>
+                                    @endif
+                                    @if ($property->floorPlans && $property->floorPlans->count())
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-floor-plans">Floor Plans</a>
+                                        </li>
+                                    @endif
+                                    @if ($property->paymentPlans && $property->paymentPlans->count())
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-payment-plans">Payment Plans</a>
+                                        </li>
+                                    @endif
+                                    @if ($property->landmarks && $property->landmarks->count())
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-landmarks">Landmarks</a>
+                                        </li>
+                                    @endif
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#sec-location">Location</a>
+                                    </li>
+                                    @if ($property->documents && $property->documents->count())
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#sec-documents">Documents</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        </div>
+
+                        {{-- === PROPERTY HEADER === --}}
+                        <div class="maincardbox">
+                            <div class="card-modern">
+                                {{-- Main Info Section --}}
+                                <div class="mb-4">
+                                    {{-- Badges --}}
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        @if ($property->availability)
+                                            <span class="badge-modern bg-availability">
+                                                {{ ucfirst($property->availability) }}
+                                            </span>
+                                        @endif
+
+                                        @isset($property->listing_type)
+                                            <span class="badge-modern bg-listing">
+                                                {{ [
+                                                    'sale' => 'For Sale',
+                                                    'rent' => 'For Rent',
+                                                    'lease' => 'For Lease',
+                                                ][$property->listing_type] ?? ucfirst($property->listing_type) }}
+                                            </span>
+                                        @endisset
+
+                                        @if ($property->featured)
+                                            <span class="badge-modern bg-featured">
+                                                <i class="bi bi-star-fill me-1"></i> Featured
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Title --}}
+                                    <h1 class="property-title mb-2">
+                                        {{ $property->title }}
+                                    </h1>
+
+                                    {{-- Location --}}
+                                    <p class="property-location mb-2">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        {{ $property->city->name ?? '' }}
+                                        @if ($property->city && $property->state)
+                                            ,
+                                        @endif
+                                        {{ $property->state->name ?? '' }}
+                                    </p>
+
+                                    {{-- Property Code --}}
+                                    @if ($property->property_code)
+                                        <span class="property-code">
+                                            Property Code: <strong>{{ $property->property_code }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                {{-- Price Section --}}
+                                @if ($property->price !== null)
+                                    <div class="property-price-box">
+                                        <div class="property-price">
+                                            ₹{{ number_format($property->price) }}
+                                            <small>inclusive of all charges</small>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- === STICKY SUB-NAVIGATION BAR === --}}
+
+                            {{-- === OVERVIEW / DESCRIPTION === --}}
+                            @if ($property->short_description || $property->description)
+                                <div id="sec-overview" class="detail-section-block card-modern">
+                                    <div class="card-body p-0">
+                                        @if ($property->short_description)
+                                            <div class="mb-4">
+                                                <h4 class="card-title mb-3">Overview</h4>
+                                                <p class="overview-text mb-0">
+                                                    {{ $property->short_description }}
+                                                </p>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->description)
+                                            <div>
+                                                <h4 class="card-title mb-3">Description</h4>
+                                                <div class="description-text">
+                                                    {!! nl2br(e($property->description)) !!}
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === PROPERTY DETAILS === --}}
+                            <div id="sec-details" class="detail-section-block card-modern ">
+                                <div class="card-body p-0">
+                                    <h4 class="card-title mb-4">Property Details</h4>
+                                    <div class="row g-3">
+                                        @if ($property->propertyType)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Property Type</span>
+                                                    <span class="value">{{ $property->propertyType->name }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->category)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Category</span>
+                                                    <span class="value">{{ $property->category->name }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->bedrooms !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Bedrooms</span>
+                                                    <span class="value">{{ $property->bedrooms }} BHK</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->bathrooms !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Bathrooms</span>
+                                                    <span class="value">{{ $property->bathrooms }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->balconies !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Balconies</span>
+                                                    <span class="value">{{ $property->balconies }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->parking !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Parking</span>
+                                                    <span class="value">{{ $property->parking }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->floor !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Floor</span>
+                                                    <span class="value">{{ $property->floor }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->total_floors !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Total Floors</span>
+                                                    <span class="value">{{ $property->total_floors }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->area !== null)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Area</span>
+                                                    <span class="value">
+                                                        {{ number_format($property->area) }}
+                                                        {{ $property->area_unit ?: 'sq.ft' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($property->availability)
+                                            <div class="col-6 col-md-4">
+                                                <div class="detail-item">
+                                                    <span class="label">Availability</span>
+                                                    <span class="value">{{ ucfirst($property->availability) }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- === AMENITIES === --}}
+                            @if ($property->amenities && $property->amenities->count())
+                                <div id="sec-amenities" class="detail-section-block card-modern ">
+                                    <div class="card-body p-0">
+                                        <div class="d-flex align-items-center justify-content-between mb-4">
+                                            <h4 class="card-title mb-0">Amenities</h4>
+                                            <span class="badge-count">{{ $property->amenities->count() }} Available</span>
+                                        </div>
+
+                                        <div class="amenity-pills-wrapper">
+                                            @foreach ($property->amenities as $amenity)
+                                                <div class="amenity-pill-item">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                    <span>{{ $amenity->name }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === SPECIFICATIONS === --}}
+                            @if ($property->specifications && $property->specifications->count())
+                                <div id="sec-specifications" class="detail-section-block card-modern">
+                                    <div class="card-body p-0">
+                                        <h4 class="card-title mb-4">Specifications</h4>
+                                        <div class="table-responsive">
+                                            <table class="table table-spec-modern align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" class="spec-head-label">Feature / Title</th>
+                                                        <th scope="col" class="spec-head-value">Details</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($property->specifications as $spec)
+                                                        <tr>
+                                                            <td class="spec-label">{{ $spec->title }}</td>
+                                                            <td class="spec-value-col">
+                                                                <div class="spec-value">{{ $spec->value }}</div>
+                                                                @if ($spec->description)
+                                                                    <div class="spec-desc">{{ $spec->description }}</div>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === PROJECT INFORMATION === --}}
+                            @if (
+                                $property->developer ||
+                                    $property->project_status ||
+                                    $property->possession_date ||
+                                    $property->rera_number ||
+                                    $property->rera_status)
+                                <div id="sec-project" class="detail-section-block project-info-card card-modern ">
+                                    <div class="card-body p-0">
+                                        <h4 class="card-title mb-4">Project Information</h4>
+                                        <div class="project-info-grid">
+                                            @if ($property->developer)
+                                                <div class="project-info-item">
+                                                    <div class="info-icon"><i class="bi bi-building"></i></div>
+                                                    <div class="info-content">
+                                                        <span class="label">Developer</span>
+                                                        <span class="value">{{ $property->developer->name }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            @if ($property->project_status)
+                                                <div class="project-info-item">
+                                                    <div class="info-icon"><i class="bi bi-bar-chart-steps"></i></div>
+                                                    <div class="info-content">
+                                                        <span class="label">Project Status</span>
+                                                        <span class="value">{{ $property->project_status }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            @if ($property->possession_date)
+                                                <div class="project-info-item">
+                                                    <div class="info-icon"><i class="bi bi-calendar2-check"></i></div>
+                                                    <div class="info-content">
+                                                        <span class="label">Possession Date</span>
+                                                        <span class="value">
+                                                            {{ \Carbon\Carbon::parse($property->possession_date)->format('d M Y') }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            @if ($property->rera_number)
+                                                <div class="project-info-item highlight-item">
+                                                    <div class="info-icon"><i class="bi bi-shield-check"></i></div>
+                                                    <div class="info-content">
+                                                        <span class="label">RERA Number</span>
+                                                        <span class="value mono-font">{{ $property->rera_number }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            @if ($property->rera_status)
+                                                <div class="project-info-item">
+                                                    <div class="info-icon"><i class="bi bi-patch-check"></i></div>
+                                                    <div class="info-content">
+                                                        <span class="label">RERA Status</span>
+                                                        <span class="value">{{ $property->rera_status }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === FLOOR PLANS (Big Slider) === --}}
+                            @if ($property->floorPlans && $property->floorPlans->count())
+                                <div id="sec-floor-plans" class="detail-section-block card-modern">
+                                    <div class="card-body p-0">
+                                        <h4 class="card-title mb-4">Floor Plans</h4>
+
+                                        {{-- Owl Carousel Container --}}
+                                        <div class="owl-carousel owl-theme floor-plan-carousel">
+                                            @foreach ($property->floorPlans as $plan)
+                                                <div class="item">
+                                                    <div class="floor-plan-card">
+                                                        @if ($plan->image)
+                                                            <div class="floor-img-wrapper">
+                                                                <img src="{{ asset('storage/properties/floor-plans/' . $plan->image) }}"
+                                                                    alt="{{ $plan->title ?? 'Floor Plan' }}"
+                                                                    loading="lazy" />
+                                                                <div class="floor-overlay">
+                                                                    <span class="preview-btn">
+                                                                        <i class="bi bi-arrows-angle-expand me-1"></i>
+                                                                        Preview
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+
+                                                        <div class="floor-body">
+                                                            @if ($plan->title)
+                                                                <h5 class="floor-title">{{ $plan->title }}</h5>
+                                                            @endif
+
+                                                            <div class="floor-meta-grid">
+                                                                @if ($plan->configuration)
+                                                                    <div class="meta-item">
+                                                                        <span class="meta-label">Config</span>
+                                                                        <span
+                                                                            class="meta-val">{{ $plan->configuration }}</span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($plan->area)
+                                                                    <div class="meta-item">
+                                                                        <span class="meta-label">Area</span>
+                                                                        <span
+                                                                            class="meta-val">{{ number_format($plan->area) }}
+                                                                            {{ $plan->area_unit ?: 'sq.ft' }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+
+                                                            @if ($plan->price !== null)
+                                                                <div class="floor-price-box">
+                                                                    <span class="price-label">Starting Price</span>
+                                                                    <span
+                                                                        class="price-amount">₹{{ number_format($plan->price) }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === PAYMENT PLANS === --}}
+                            @if ($property->paymentPlans && $property->paymentPlans->count())
+                                <div id="sec-payment-plans" class="detail-section-block card-modern ">
+                                    <div class="card-body p-0">
+                                        <h4 class="card-title mb-4">Payment Plans</h4>
+                                        <div class="row g-3">
+                                            @foreach ($property->paymentPlans as $plan)
+                                                <div class="col-md-6">
+                                                    <div class="plan-card-v2">
+                                                        <div class="plan-v2-top">
+                                                            <span class="plan-v2-badge">
+                                                                <i class="bi bi-wallet2"></i> Option
+                                                                {{ $loop->iteration }}
+                                                            </span>
+                                                            @if ($plan->title)
+                                                                <h5 class="plan-v2-title">{{ $plan->title }}</h5>
+                                                            @endif
+                                                        </div>
+
+                                                        @if ($plan->description)
+                                                            <div class="plan-v2-body">
+                                                                <p class="plan-v2-text">{{ $plan->description }}</p>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === LANDMARKS === --}}
+                            @if ($property->landmarks && $property->landmarks->count())
+                                <div id="sec-landmarks" class="detail-section-block card-modern">
+                                    <div class="card-body p-0">
+                                        <h4 class="card-title mb-4">Nearby Landmarks</h4>
+                                        <div class="row g-3">
+                                            @foreach ($property->landmarks as $landmark)
+                                                <div class="col-md-6">
+                                                    <div class="landmark-card-v2">
+                                                        <div class="landmark-v2-icon">
+                                                            <i class="bi bi-geo-alt-fill"></i>
+                                                        </div>
+                                                        <div class="landmark-v2-content">
+                                                            <span class="landmark-v2-title">
+                                                                {{ $landmark->name ?? $landmark->title }}
+                                                            </span>
+                                                            @if (isset($landmark->distance) && $landmark->distance)
+                                                                <span class="landmark-v2-distance">
+                                                                    <i
+                                                                        class="bi bi-pin-map me-1"></i>{{ $landmark->distance }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- === LOCATION === --}}
+                            <div id="sec-location" class="detail-section-block card-modern ">
+                                <div class="card-body p-0">
+                                    <h4 class="card-title mb-4">Location</h4>
+                                    <div class="location-v2-wrapper">
+                                        @if ($property->address)
+                                            <div class="location-v2-main mb-3">
+                                                <div class="location-v2-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                                                <div class="location-v2-info">
+                                                    <span class="location-v2-label">Address</span>
+                                                    <p class="location-v2-address">{{ $property->address }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <div class="location-v2-grid">
+                                            @if ($property->city)
+                                                <div class="location-v2-chip">
+                                                    <span class="chip-label">City</span>
+                                                    <span class="chip-val">{{ $property->city->name }}</span>
+                                                </div>
+                                            @endif
+
+                                            @if ($property->state)
+                                                <div class="location-v2-chip">
+                                                    <span class="chip-label">State</span>
+                                                    <span class="chip-val">{{ $property->state->name }}</span>
+                                                </div>
+                                            @endif
+
+                                            @if ($property->pincode)
+                                                <div class="location-v2-chip">
+                                                    <span class="chip-label">Pincode</span>
+                                                    <span class="chip-val mono-font">{{ $property->pincode }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        @if ($property->latitude || $property->longitude)
+                                            <div class="location-v2-coords mt-3">
+                                                <div class="coords-info">
+                                                    <i class="bi bi-compass me-1"></i>
+                                                    @if ($property->latitude)
+                                                        <span>Lat: {{ $property->latitude }}</span>
+                                                    @endif
+                                                    @if ($property->latitude && $property->longitude)
+                                                        <span class="mx-1.5">•</span>
+                                                    @endif
+                                                    @if ($property->longitude)
+                                                        <span>Long: {{ $property->longitude }}</span>
+                                                    @endif
+                                                </div>
+                                                @if ($property->latitude && $property->longitude)
+                                                    <a href="https://www.google.com/maps?q={{ $property->latitude }},{{ $property->longitude }}"
+                                                        target="_blank" rel="noopener noreferrer" class="coords-link">
+                                                        Get Directions <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- === DOCUMENTS === --}}
+                            @if ($property->documents && $property->documents->count())
+                                <div id="sec-documents" class="detail-section-block card-modern">
+                                    <div class="card-body p-0">
+                                        <h4 class="card-title mb-4">Documents</h4>
+                                        <div class="doc-v2-list">
+                                            @foreach ($property->documents as $doc)
+                                                @php
+                                                    $docFile = $doc->file ?? ($doc->document ?? ($doc->path ?? null));
+                                                    $ext = $docFile
+                                                        ? strtolower(pathinfo($docFile, PATHINFO_EXTENSION))
+                                                        : '';
+                                                    $iconClass = match ($ext) {
+                                                        'pdf' => 'bi-file-earmark-pdf-fill text-danger',
+                                                        'doc', 'docx' => 'bi-file-earmark-word-fill text-primary',
+                                                        'jpg',
+                                                        'jpeg',
+                                                        'png',
+                                                        'webp'
+                                                            => 'bi-file-earmark-image-fill text-success',
+                                                        default => 'bi-file-earmark-text-fill text-warning',
+                                                    };
+                                                @endphp
+
+                                                @if ($docFile)
+                                                    <a href="{{ asset('storage/properties/documents/' . $docFile) }}"
+                                                        target="_blank" rel="noopener noreferrer" class="doc-card-v2">
+                                                        <div class="doc-v2-icon">
+                                                            <i class="bi {{ $iconClass }}"></i>
+                                                        </div>
+
+                                                        <div class="doc-v2-info">
+                                                            <span class="doc-v2-title">
+                                                                {{ $doc->title ?? ($doc->name ?? 'Property Document') }}
+                                                            </span>
+                                                            <span class="doc-v2-meta">
+                                                                {{ strtoupper($ext ?: 'FILE') }} • Tap to view or download
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="doc-v2-action">
+                                                            <span class="doc-v2-btn">
+                                                                View <i class="bi bi-arrow-right ms-1"></i>
+                                                            </span>
+                                                        </div>
+                                                    </a>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                        </div>
+                    </div>
+                    {{-- end left column --}}
+
+
+                    {{-- ============================================================
+    RIGHT COLUMN — SIDEBAR
+    ============================================================ --}}
+                    <div class="col-lg-4">
+
+                        <div class="sidebar-sticky-v3">
+                            {{-- Ambient Decorative Glows --}}
+                            <div class="sidebar-ambient-glow glow-1"></div>
+                            <div class="sidebar-ambient-glow glow-2"></div>
+
+                            <div class="card-sidebar-v3">
+                                <div class="sidebar-v3-inner">
+
+                                    {{-- Top Hero Header --}}
+                                    <div class="sidebar-v3-header">
+                                        <div class="header-badge-title">
+                                            <span class="header-icon-box">
+                                                <i class="bi bi-lightning-charge-fill"></i>
+                                            </span>
+                                            <div>
+                                                <h5 class="header-v3-title">Instant Inquiry</h5>
+                                                <p class="header-v3-subtitle">Direct Connect with Owner</p>
+                                            </div>
+                                        </div>
+                                        <div class="live-pill">
+                                            <span class="pulse-dot"></span>
+
+                                        </div>
+                                    </div>
+
+                                    {{-- Owner / Lister Glass Card --}}
+                                    @if ($property->user)
+                                        <div class="lister-hero-v3">
+                                            <div class="lister-avatar-ring">
+                                                <div class="lister-avatar-inner">
+                                                    <i class="bi bi-person-fill"></i>
+                                                </div>
+                                                <div class="verified-badge-v3" title="Verified Owner">
+                                                    <i class="bi bi-patch-check-fill"></i>
+                                                </div>
+                                            </div>
+                                            <div class="lister-meta">
+                                                <h6 class="lister-name-v3">{{ $property->user->name }}</h6>
+                                                <div class="lister-tags">
+                                                    <span class="role-chip"><i
+                                                            class="bi bi-shield-check me-1"></i>Property Owner</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Interactive Contact Grid --}}
+                                        <div class="contact-grid-v3">
+                                            @if ($property->user->phone)
+                                                <a href="tel:{{ $property->user->phone }}"
+                                                    class="contact-tile-v3 phone-tile">
+                                                    <div class="tile-icon-box">
+                                                        <i class="bi bi-telephone-fill"></i>
+                                                    </div>
+                                                    <div class="tile-info">
+                                                        <span class="tile-label">Call Direct</span>
+                                                        <span class="tile-val">{{ $property->user->phone }}</span>
+                                                    </div>
+                                                    <i class="bi bi-chevron-right tile-arrow"></i>
+                                                </a>
+                                            @endif
+
+                                            @if ($property->user->email)
+                                                <a href="mailto:{{ $property->user->email }}?subject={{ urlencode('Property Enquiry - ' . $property->title) }}"
+                                                    class="contact-tile-v3 email-tile">
+                                                    <div class="tile-icon-box">
+                                                        <i class="bi bi-envelope-open-fill"></i>
+                                                    </div>
+                                                    <div class="tile-info">
+                                                        <span class="tile-label">Email Owner</span>
+                                                        <span
+                                                            class="tile-val text-truncate">{{ $property->user->email }}</span>
+                                                    </div>
+                                                    <i class="bi bi-chevron-right tile-arrow"></i>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    {{-- Vibrant High-Conversion Action Buttons --}}
+                                    <div class="cta-stack-v3">
+                                        @if ($property->user && $property->user->phone)
+                                            <a href="tel:{{ $property->user->phone }}" class="btn-v3-primary">
+                                                <span class="btn-gradient-overlay"></span>
+                                                <span class="btn-content">
+                                                    <i class="bi bi-telephone-outbound-fill"></i>
+                                                    <span>Call Owner Now</span>
+                                                </span>
+                                                <span class="btn-flare"></span>
+                                            </a>
+                                        @endif
+
+                                        @if ($property->user && $property->user->email)
+                                            <a href="mailto:{{ $property->user->email }}?subject={{ urlencode('Property Enquiry - ' . $property->title) }}"
+                                                class="btn-v3-secondary">
+                                                <i class="bi bi-chat-left-text-fill"></i>
+                                                <span>Send Quick Message</span>
+                                            </a>
+                                        @endif
+                                    </div>
+
+                                    {{-- Decorative Accent Divider --}}
+                                    <div class="divider-v3">
+                                        <span>Quick Snapshot</span>
+                                    </div>
+
+                                    {{-- Elevated Metadata Grid --}}
+                                    <div class="meta-card-v3">
+                                        <div class="meta-item-v3">
+                                            <span class="meta-label-v3"><i class="bi bi-qr-code"></i> Ref Code</span>
+                                            <span
+                                                class="meta-pill-v3 code-pill">{{ $property->property_code ?? 'N/A' }}</span>
+                                        </div>
+
+                                        <div class="meta-item-v3">
+                                            <span class="meta-label-v3"><i class="bi bi-tag-fill"></i> Purpose</span>
+                                            <span class="meta-pill-v3 type-pill">
+                                                @isset($property->listing_type)
+                                                    {{ [
+                                                        'sale' => 'For Sale',
+                                                        'rent' => 'For Rent',
+                                                        'lease' => 'For Lease',
+                                                    ][$property->listing_type] ?? ucfirst($property->listing_type) }}
+                                                @endisset
+                                            </span>
+                                        </div>
+
+                                        <div class="meta-item-v3">
+                                            <span class="meta-label-v3"><i class="bi bi-calendar2-check-fill"></i>
+                                                Posted</span>
+                                            <span
+                                                class="meta-val-v3">{{ $property->created_at?->format('d M Y') ?? 'Recently' }}</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    {{-- end sidebar --}}
+
+
+                </div>
+                {{-- end row --}}
+
+
+            </div>
+        </div>
+        {{-- end container --}}
+
+
+
+
+        <section class="pp-owner-section py-5 bg-white">
+            <div class="container-xl">
+
+                <!-- Section Header with Right Side View All Link -->
+                <div class="d-flex justify-content-between align-items-end mb-4 pp-section-head">
+                    <div>
+                        <span class="pp-eyebrow-pill">— Verified Listings —</span>
+                        <h2 class="pp-title mt-2 mb-1">
+                            Premium Properties in <span
+                                class="gradient-text animated-gradient">{{ $property->city->name ?? 'Similar Projects' }}</span>
+                        </h2>
+                        <p class="pp-subtitle mb-0">Direct owner listings in the same city.</p>
+                    </div>
+
+
+                    <a href="{{ $property->city ? route('properties.city', $property->city->slug) : route('properties.index') }}"
+                        class="pp-btn-link d-inline-flex align-items-center">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
                     </a>
-                </li>
+                </div>
 
-                <li class="breadcrumb-item">
-                    <a href="{{ route('properties.index') }}">
-                        Properties
-                    </a>
-                </li>
+                <!-- 4-Column Bootstrap Grid -->
+                <div class="row g-3 g-lg-4">
 
-                <li class="breadcrumb-item active">
-                    {{ $property->title }}
-                </li>
+                    @forelse($similarProperties ?? [] as $similarProp)
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="pp-prop-card-sm h-100">
 
-            </ol>
+                                <!-- Image Media Wrapper -->
+                                <div class="pp-card-media">
+                                    @if ($similarProp->featured_image)
+                                        <img src="{{ asset('storage/properties/featured/' . $similarProp->featured_image) }}"
+                                            alt="{{ $similarProp->title }}" loading="lazy">
+                                    @else
+                                        <img src="https://picsum.photos/seed/owner-{{ $similarProp->id }}/480/320"
+                                            alt="{{ $similarProp->title }}" loading="lazy">
+                                    @endif
 
-        </nav>
+                                    <!-- Photo Count & Owner Badges -->
+                                    <div class="pp-media-badges">
+                                        <span class="pp-badge-photos">
+                                            <i
+                                                class="bi bi-camera me-1"></i>{{ $similarProp->photos_count ?? rand(8, 15) }}
+                                        </span>
+                                    </div>
+                                    <span class="pp-badge-owner">Owner</span>
+                                </div>
 
-    </div>
+                                <!-- Card Body -->
+                                <div class="pp-card-body">
+                                    <h5 class="pp-card-title text-truncate mb-1" title="{{ $similarProp->title }}">
+                                        {{ $similarProp->title }}
+                                    </h5>
 
-</section>
+                                    <div class="pp-card-price mb-1">
+                                        ₹{{ number_format($similarProp->price) }}
+                                    </div>
+
+                                    <p class="pp-card-location text-truncate mb-3">
+                                        <i
+                                            class="bi bi-geo-alt me-1"></i>{{ $similarProp->locality ?? $similarProp->title }},
+                                        {{ $similarProp->city->name ?? '' }}
+                                    </p>
+
+                                    <!-- Footer Details -->
+                                    <div
+                                        class="pp-card-specs d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
+                                        <span class="pp-status-tag">
+                                            <i
+                                                class="bi bi-check-circle-fill me-1 text-success"></i>{{ ucfirst($similarProp->availability ?? 'Ready to Move') }}
+                                        </span>
+
+                                        <a href="{{ route('properties.city.slug', [$similarProp->city->slug, $similarProp->slug]) }}"
+                                            class="pp-view-details-link">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    @empty
+                        {{-- अगर उसी शहर में कोई और प्रॉपर्टी नहीं है --}}
+                        <div class="col-12 text-center py-5">
+                            <p class="text-muted">No similar properties found in
+                                {{ $property->city->name ?? 'this area' }}.</p>
+                        </div>
+                    @endforelse
+
+                </div>
+
+            </div>
+        </section>
 
 
-{{-- =========================================================
+        <!-- ============================================================
+                                    GALLERY MODAL (Bootstrap Carousel)
+                                    ============================================================ -->
+        <div class="modal modal-gallery fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+
+                    {{-- Header with close --}}
+                    <div class="modal-header border-0 position-absolute top-0 end-0 z-3 p-3">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+
+                    {{-- Body with carousel --}}
+                    <div class="modal-body p-0">
+
+                        <div id="galleryCarousel" class="carousel slide h-100" data-bs-ride="false">
+
+                            {{-- Indicators --}}
+                            <div class="carousel-indicators">
+                                {{-- Featured image indicator --}}
+                                <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="0"
+                                    class="active" aria-current="true"></button>
+
+                                @foreach ($allGalleryImages as $index => $image)
+                                    <button type="button" data-bs-target="#galleryCarousel"
+                                        data-bs-slide-to="{{ $index + 1 }}"></button>
+                                @endforeach
+                            </div>
+
+                            {{-- Slides --}}
+                            <div class="carousel-inner h-100">
+
+                                {{-- Slide 0: Featured Image --}}
+                                <div class="carousel-item active h-100">
+                                    @if ($property->featured_image)
+                                        <img src="{{ asset('storage/properties/featured/' . $property->featured_image) }}"
+                                            alt="{{ $property->title }}" class="d-block w-100 h-100"
+                                            style="object-fit:contain;" />
+                                    @else
+                                        <div
+                                            class="h-100 w-100 d-flex align-items-center justify-content-center text-white">
+                                            <i class="bi bi-image fs-1 opacity-50"></i>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- Slides: Gallery Images --}}
+                                @foreach ($allGalleryImages as $image)
+                                    <div class="carousel-item h-100">
+                                        <img src="{{ asset('storage/properties/gallery/' . $image->image) }}"
+                                            alt="{{ $property->title }}" class="d-block w-100 h-100"
+                                            style="object-fit:contain;" loading="lazy" />
+                                    </div>
+                                @endforeach
+
+                            </div>
+
+                            {{-- Controls --}}
+                            <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel"
+                                data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel"
+                                data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        {{-- =========================================================
 PROPERTY DETAIL
 ========================================================= --}}
 
-<section class="py-5">
 
-    <div class="container">
 
 
-        {{-- =====================================================
-        IMAGE GALLERY
-        ===================================================== --}}
 
-        <div class="row g-3 mb-5">
 
-            {{-- Featured Image --}}
 
-            <div class="col-lg-8">
 
-                @if($property->featured_image)
 
-                    <img
-                        src="{{ asset(
-                            'storage/properties/featured/' .
-                            $property->featured_image
-                        ) }}"
-                        alt="{{ $property->title }}"
-                        class="img-fluid rounded shadow-sm w-100"
-                        style="
-                            height:500px;
-                            object-fit:cover;
-                        "
-                    >
+    </main>
 
-                @else
-
-                    <div
-                        class="bg-light rounded d-flex align-items-center justify-content-center"
-                        style="height:500px;"
-                    >
-
-                        <div class="text-center text-muted">
-
-                            <i class="bi bi-image fs-1"></i>
-
-                            <p class="mb-0">
-                                No Image Available
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-            </div>
-
-
-            {{-- Gallery --}}
-
-            <div class="col-lg-4">
-
-               {{-- =========================================================
-PROPERTY IMAGE GALLERY
-========================================================= --}}
-
-@php
-    $galleryImages = $property->images ?? collect();
-@endphp
-
-<div class="row g-3 mb-5">
-
-    {{-- Main Featured Image --}}
-    <div class="col-lg-8">
-
-        @if($property->featured_image)
-
-            <a
-                href="#propertyGalleryModal"
-                data-bs-toggle="modal"
-                data-bs-slide-to="0"
-                class="d-block"
-            >
-                <img
-                    src="{{ asset(
-                        'storage/properties/featured/' .
-                        $property->featured_image
-                    ) }}"
-                    alt="{{ $property->title }}"
-                    class="img-fluid rounded shadow-sm w-100"
-                    style="
-                        height:500px;
-                        object-fit:cover;
-                        cursor:pointer;
-                    "
-                >
-            </a>
-
-        @else
-
-            <div
-                class="bg-light rounded d-flex align-items-center justify-content-center"
-                style="height:500px;"
-            >
-                <i class="bi bi-image text-muted fs-1"></i>
-            </div>
-
-        @endif
-
-    </div>
-
-
-    {{-- Gallery Images --}}
-    <div class="col-lg-4">
-
-        <div class="row g-3">
-
-            @forelse($galleryImages->take(4) as $index => $image)
-
-                @php
-                    $totalGalleryImages = $galleryImages->count();
-                    $remainingImages = $totalGalleryImages - 4;
-                @endphp
-
-                <div class="col-6">
-
-                    <a
-                        href="#propertyGalleryModal"
-                        data-bs-toggle="modal"
-                        data-bs-slide-to="{{ $index + 1 }}"
-                        class="position-relative d-block overflow-hidden rounded"
-                    >
-
-                        <img
-                            src="{{ asset(
-                                'storage/properties/gallery/' .
-                                $image->image
-                            ) }}"
-                            alt="{{ $property->title }}"
-                            class="img-fluid rounded shadow-sm w-100"
-                            style="
-                                height:238px;
-                                object-fit:cover;
-                                cursor:pointer;
-                            "
-                            loading="lazy"
-                        >
-
-
-                        {{-- Plus Overlay --}}
-                        @if($index === 3 && $remainingImages > 0)
-
-                            <span
-                                class="position-absolute top-50 start-50 translate-middle
-                                       bg-dark bg-opacity-75 text-white
-                                       rounded-pill px-3 py-2 fw-semibold"
-                                style="
-                                    font-size:15px;
-                                    backdrop-filter:blur(4px);
-                                "
-                            >
-
-                                <i class="bi bi-plus-lg"></i>
-
-                                {{ $remainingImages }}
-
-                            </span>
-
-                        @endif
-
-                    </a>
-
-                </div>
-
-            @empty
-
-                @for($i = 0; $i < 4; $i++)
-
-                    <div class="col-6">
-
-                        <div
-                            class="bg-light rounded d-flex align-items-center justify-content-center"
-                            style="height:238px;"
-                        >
-
-                            <i class="bi bi-image text-muted fs-3"></i>
-
-                        </div>
-
-                    </div>
-
-                @endfor
-
-            @endforelse
-
-        </div>
-
-    </div>
-
-</div>
-
-            </div>
-
-        </div>
-
-
-        {{-- =====================================================
-        MAIN CONTENT
-        ===================================================== --}}
-
-        <div class="row g-5">
-
-
-            {{-- =================================================
-            LEFT COLUMN
-            ================================================= --}}
-
-            <div class="col-lg-8">
-
-
-                {{-- =================================================
-                PROPERTY HEADER
-                ================================================= --}}
-
-                <div class="mb-4">
-
-                    <div class="d-flex flex-wrap gap-2 mb-3">
-
-                        @if($property->availability)
-
-                            <span class="badge bg-success">
-                                {{ ucfirst($property->availability) }}
-                            </span>
-
-                        @endif
-
-
-@isset($property->listing_type)
-    <span class="badge bg-dark">
-        {{ [
-            'sale'  => 'For Sale',
-            'rent'  => 'For Rent',
-            'lease' => 'For Lease',
-        ][$property->listing_type] ?? ucfirst($property->listing_type) }}
-    </span>
-@endisset
-
-
-                        @if($property->featured)
-
-                            <span class="badge bg-primary">
-                                Featured
-                            </span>
-
-                        @endif
-
-                    </div>
-
-
-                    <h1 class="fw-bold mb-3">
-                        {{ $property->title }}
-                    </h1>
-
-
-                    <p class="text-muted mb-2">
-
-                        <i class="bi bi-geo-alt"></i>
-
-                        {{ $property->city->name ?? '' }}
-
-                        @if($property->city && $property->state)
-                            ,
-                        @endif
-
-                        {{ $property->state->name ?? '' }}
-
-                    </p>
-
-
-                    @if($property->property_code)
-
-                        <small class="text-muted">
-
-                            Property Code:
-
-                            <strong>
-                                {{ $property->property_code }}
-                            </strong>
-
-                        </small>
-
-                    @endif
-
-                </div>
-
-
-                {{-- =================================================
-                PRICE
-                ================================================= --}}
-
-                @if($property->price !== null)
-
-                    <div class="mb-4">
-
-                        <h2 class="fw-bold text-primary mb-0">
-
-                            ₹{{ number_format($property->price) }}
-
-                        </h2>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                PROPERTY DETAILS
-                ================================================= --}}
-
-                <div class="card border-0 shadow-sm mb-4">
-
-                    <div class="card-body">
-
-                        <h4 class="fw-bold mb-4">
-                            Property Details
-                        </h4>
-
-
-                        <div class="row g-4">
-
-
-                            @if($property->propertyType)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Property Type
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->propertyType->name }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->category)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Category
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->category->name }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->bedrooms !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Bedrooms
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->bedrooms }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->bathrooms !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Bathrooms
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->bathrooms }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->balconies !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Balconies
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->balconies }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->parking !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Parking
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->parking }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->floor !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Floor
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->floor }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->total_floors !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Total Floors
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ $property->total_floors }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->area !== null)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Area
-                                    </div>
-
-                                    <div class="fw-semibold">
-
-                                        {{ number_format($property->area) }}
-
-                                        {{ $property->area_unit ?: 'sq.ft' }}
-
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            @if($property->availability)
-
-                                <div class="col-6 col-md-4">
-
-                                    <div class="text-muted small">
-                                        Availability
-                                    </div>
-
-                                    <div class="fw-semibold">
-                                        {{ ucfirst($property->availability) }}
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                {{-- =================================================
-                DESCRIPTION
-                ================================================= --}}
-
-                @if($property->short_description)
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-3">
-                                Overview
-                            </h4>
-
-                            <p class="text-muted mb-0">
-                                {{ $property->short_description }}
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                @if($property->description)
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-3">
-                                Description
-                            </h4>
-
-                            <div class="text-muted">
-
-                                {!! nl2br(
-                                    e($property->description)
-                                ) !!}
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                AMENITIES
-                ================================================= --}}
-
-                @if($property->amenities && $property->amenities->count())
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Amenities
-                            </h4>
-
-                            <div class="row g-3">
-
-                                @foreach($property->amenities as $amenity)
-
-                                    <div class="col-6 col-md-4">
-
-                                        <div class="d-flex align-items-center">
-
-                                            <i
-                                                class="bi bi-check-circle-fill text-success me-2"
-                                            ></i>
-
-                                            <span>
-                                                {{ $amenity->name }}
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-                                @endforeach
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                SPECIFICATIONS
-                ================================================= --}}
-
-                @if($property->specifications && $property->specifications->count())
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Specifications
-                            </h4>
-
-                            <div class="table-responsive">
-
-                                <table class="table table-bordered align-middle mb-0">
-
-                                    <tbody>
-
-                                        @foreach($property->specifications as $specification)
-
-                                            <tr>
-
-                                                <th style="width:30%;">
-
-                                                    {{ $specification->title }}
-
-                                                </th>
-
-                                                <td>
-
-                                                    {{ $specification->value }}
-
-                                                    @if($specification->description)
-
-                                                        <div class="small text-muted mt-1">
-
-                                                            {{ $specification->description }}
-
-                                                        </div>
-
-                                                    @endif
-
-                                                </td>
-
-                                            </tr>
-
-                                        @endforeach
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                DEVELOPER / PROJECT
-                ================================================= --}}
-
-                @if(
-                    $property->developer ||
-                    $property->project_status ||
-                    $property->possession_date ||
-                    $property->rera_number ||
-                    $property->rera_status
-                )
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Project Information
-                            </h4>
-
-                            <div class="row g-4">
-
-
-                                @if($property->developer)
-
-                                    <div class="col-md-6">
-
-                                        <div class="text-muted small">
-                                            Developer
-                                        </div>
-
-                                        <div class="fw-semibold">
-                                            {{ $property->developer->name }}
-                                        </div>
-
-                                    </div>
-
-                                @endif
-
-
-                                @if($property->project_status)
-
-                                    <div class="col-md-6">
-
-                                        <div class="text-muted small">
-                                            Project Status
-                                        </div>
-
-                                        <div class="fw-semibold">
-                                            {{ $property->project_status }}
-                                        </div>
-
-                                    </div>
-
-                                @endif
-
-
-                                @if($property->possession_date)
-
-                                    <div class="col-md-6">
-
-                                        <div class="text-muted small">
-                                            Possession Date
-                                        </div>
-
-                                        <div class="fw-semibold">
-
-                                            {{ \Carbon\Carbon::parse(
-                                                $property->possession_date
-                                            )->format('d M Y') }}
-
-                                        </div>
-
-                                    </div>
-
-                                @endif
-
-
-                                @if($property->rera_number)
-
-                                    <div class="col-md-6">
-
-                                        <div class="text-muted small">
-                                            RERA Number
-                                        </div>
-
-                                        <div class="fw-semibold">
-                                            {{ $property->rera_number }}
-                                        </div>
-
-                                    </div>
-
-                                @endif
-
-
-                                @if($property->rera_status)
-
-                                    <div class="col-md-6">
-
-                                        <div class="text-muted small">
-                                            RERA Status
-                                        </div>
-
-                                        <div class="fw-semibold">
-
-                                            {{ $property->rera_status }}
-
-                                        </div>
-
-                                    </div>
-
-                                @endif
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                FLOOR PLANS
-                ================================================= --}}
-
-                @if($property->floorPlans && $property->floorPlans->count())
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Floor Plans
-                            </h4>
-
-                            <div class="row g-4">
-
-                                @foreach($property->floorPlans as $floorPlan)
-
-                                    <div class="col-md-6">
-
-                                        <div class="border rounded p-3 h-100">
-
-                                            @if($floorPlan->image)
-
-                                                <img
-                                                    src="{{ asset(
-                                                        'storage/properties/floor-plans/' .
-                                                        $floorPlan->image
-                                                    ) }}"
-                                                    alt="{{ $floorPlan->title }}"
-                                                    class="img-fluid rounded mb-3 w-100"
-                                                    style="
-                                                        height:220px;
-                                                        object-fit:cover;
-                                                    "
-                                                    loading="lazy"
-                                                >
-
-                                            @endif
-
-
-                                            @if($floorPlan->title)
-
-                                                <h5 class="fw-bold mb-2">
-                                                    {{ $floorPlan->title }}
-                                                </h5>
-
-                                            @endif
-
-
-                                            @if($floorPlan->configuration)
-
-                                                <div class="small text-muted mb-1">
-
-                                                    Configuration:
-
-                                                    <strong>
-                                                        {{ $floorPlan->configuration }}
-                                                    </strong>
-
-                                                </div>
-
-                                            @endif
-
-
-                                            @if($floorPlan->area)
-
-                                                <div class="small text-muted mb-1">
-
-                                                    Area:
-
-                                                    <strong>
-
-                                                        {{ number_format(
-                                                            $floorPlan->area
-                                                        ) }}
-
-                                                        {{ $floorPlan->area_unit }}
-
-                                                    </strong>
-
-                                                </div>
-
-                                            @endif
-
-
-                                            @if($floorPlan->price !== null)
-
-                                                <div class="small text-muted">
-
-                                                    Price:
-
-                                                    <strong>
-
-                                                        ₹{{ number_format(
-                                                            $floorPlan->price
-                                                        ) }}
-
-                                                    </strong>
-
-                                                </div>
-
-                                            @endif
-
-                                        </div>
-
-                                    </div>
-
-                                @endforeach
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                PAYMENT PLANS
-                ================================================= --}}
-
-                @if($property->paymentPlans && $property->paymentPlans->count())
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Payment Plans
-                            </h4>
-
-                            <div class="row g-3">
-
-                                @foreach($property->paymentPlans as $paymentPlan)
-
-                                    <div class="col-md-6">
-
-                                        <div class="border rounded p-3">
-
-                                            @if($paymentPlan->title)
-
-                                                <h6 class="fw-bold">
-                                                    {{ $paymentPlan->title }}
-                                                </h6>
-
-                                            @endif
-
-
-                                            @if($paymentPlan->description)
-
-                                                <p class="small text-muted mb-0">
-
-                                                    {{ $paymentPlan->description }}
-
-                                                </p>
-
-                                            @endif
-
-                                        </div>
-
-                                    </div>
-
-                                @endforeach
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                LANDMARKS
-                ================================================= --}}
-
-                @if($property->landmarks && $property->landmarks->count())
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Nearby Landmarks
-                            </h4>
-
-                            <div class="row g-3">
-
-                                @foreach($property->landmarks as $landmark)
-
-                                    <div class="col-md-6">
-
-                                        <div class="d-flex align-items-start">
-
-                                            <i
-                                                class="bi bi-geo-alt-fill text-primary me-2 mt-1"
-                                            ></i>
-
-                                            <div>
-
-                                                <div class="fw-semibold">
-
-                                                    {{ $landmark->name ?? $landmark->title }}
-
-                                                </div>
-
-                                                @if(isset($landmark->distance) && $landmark->distance)
-
-                                                    <div class="small text-muted">
-
-                                                        {{ $landmark->distance }}
-
-                                                    </div>
-
-                                                @endif
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                @endforeach
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- =================================================
-                LOCATION
-                ================================================= --}}
-
-                <div class="card border-0 shadow-sm mb-4">
-
-                    <div class="card-body">
-
-                        <h4 class="fw-bold mb-4">
-                            Location
-                        </h4>
-
-
-                        @if($property->city)
-
-                            <p class="mb-2">
-
-                                <strong>City:</strong>
-
-                                {{ $property->city->name }}
-
-                            </p>
-
-                        @endif
-
-
-                        @if($property->state)
-
-                            <p class="mb-2">
-
-                                <strong>State:</strong>
-
-                                {{ $property->state->name }}
-
-                            </p>
-
-                        @endif
-
-
-                        @if($property->address)
-
-                            <p class="mb-2">
-
-                                <strong>Address:</strong>
-
-                                {{ $property->address }}
-
-                            </p>
-
-                        @endif
-
-
-                        @if($property->pincode)
-
-                            <p class="mb-2">
-
-                                <strong>Pincode:</strong>
-
-                                {{ $property->pincode }}
-
-                            </p>
-
-                        @endif
-
-
-                        @if($property->latitude || $property->longitude)
-
-                            <div class="small text-muted mt-3">
-
-                                @if($property->latitude)
-
-                                    Latitude:
-                                    {{ $property->latitude }}
-
-                                @endif
-
-                                @if($property->longitude)
-
-                                    &nbsp; | &nbsp;
-
-                                    Longitude:
-                                    {{ $property->longitude }}
-
-                                @endif
-
-                            </div>
-
-                        @endif
-
-                    </div>
-
-                </div>
-
-
-                {{-- =================================================
-                DOCUMENTS
-                ================================================= --}}
-
-                @if($property->documents && $property->documents->count())
-
-                    <div class="card border-0 shadow-sm mb-4">
-
-                        <div class="card-body">
-
-                            <h4 class="fw-bold mb-4">
-                                Documents
-                            </h4>
-
-                            <div class="list-group">
-
-                                @foreach($property->documents as $document)
-
-                                    @php
-
-                                        $documentFile =
-                                            $document->file ??
-                                            $document->document ??
-                                            $document->path ??
-                                            null;
-
-                                    @endphp
-
-                                    @if($documentFile)
-
-                                        <a
-                                            href="{{ asset(
-                                                'storage/properties/documents/' .
-                                                $documentFile
-                                            ) }}"
-                                            target="_blank"
-                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                                        >
-
-                                            <span>
-
-                                                <i class="bi bi-file-earmark-text me-2"></i>
-
-                                                {{ $document->title
-                                                    ?? $document->name
-                                                    ?? 'Property Document' }}
-
-                                            </span>
-
-                                            <i class="bi bi-box-arrow-up-right"></i>
-
-                                        </a>
-
-                                    @endif
-
-                                @endforeach
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-            </div>
-
-
-            {{-- =================================================
-            RIGHT COLUMN - OWNER / CONTACT
-            ================================================= --}}
-
-            <div class="col-lg-4">
-
-                <div
-                    class="card border-0 shadow-sm sticky-lg-top"
-                    style="top:90px;"
-                >
-
-                    <div class="card-body p-4">
-
-                        <h4 class="fw-bold mb-4">
-                            Interested in this property?
-                        </h4>
-
-
-                        {{-- =========================================
-                        PROPERTY OWNER / LISTER
-                        ========================================= --}}
-
-                        @if($property->user)
-
-                            <div class="d-flex align-items-center mb-4">
-
-                                <div
-                                    class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center me-3"
-                                    style="
-                                        width:50px;
-                                        height:50px;
-                                    "
-                                >
-
-                                    <i class="bi bi-person fs-4"></i>
-
-                                </div>
-
-
-                                <div>
-
-                                    <div class="fw-semibold">
-
-                                        {{ $property->user->name }}
-
-                                    </div>
-
-                                    <small class="text-muted">
-                                        Property Lister
-                                    </small>
-
-                                </div>
-
-                            </div>
-
-
-                            {{-- Owner Phone --}}
-
-                            @if($property->user->phone)
-
-                                <div class="mb-3">
-
-                                    <div class="small text-muted">
-                                        Contact Number
-                                    </div>
-
-                                    <div class="fw-semibold">
-
-                                        {{ $property->user->phone }}
-
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-
-                            {{-- Owner Email --}}
-
-                            @if($property->user->email)
-
-                                <div class="mb-4">
-
-                                    <div class="small text-muted">
-                                        Email
-                                    </div>
-
-                                    <div class="fw-semibold text-break">
-
-                                        {{ $property->user->email }}
-
-                                    </div>
-
-                                </div>
-
-                            @endif
-
-                        @endif
-
-
-                        {{-- =================================================
-                        CONTACT BUTTONS
-                        ================================================= --}}
-
-                        <div class="d-grid gap-2">
-
-
-                            @if($property->user && $property->user->phone)
-
-                                <a
-                                    href="tel:{{ $property->user->phone }}"
-                                    class="btn btn-primary"
-                                >
-
-                                    <i class="bi bi-telephone me-2"></i>
-
-                                    Call Owner
-
-                                </a>
-
-                            @endif
-
-
-                            @if($property->user && $property->user->email)
-
-                                <a
-                                    href="mailto:{{ $property->user->email }}?subject={{ urlencode('Property Enquiry - ' . $property->title) }}"
-                                    class="btn btn-outline-primary"
-                                >
-
-                                    <i class="bi bi-envelope me-2"></i>
-
-                                    Send Email
-
-                                </a>
-
-                            @endif
-
-                        </div>
-
-
-                        <hr class="my-4">
-
-
-                        {{-- =================================================
-                        QUICK PROPERTY INFO
-                        ================================================= --}}
-
-                        <div class="small text-muted">
-
-
-                            <div class="d-flex justify-content-between mb-2">
-
-                                <span>
-                                    Property Code
-                                </span>
-
-                                <strong>
-                                    {{ $property->property_code ?? '-' }}
-                                </strong>
-
-                            </div>
-
-
-                            <div class="d-flex justify-content-between mb-2">
-
-                                <span>
-                                    Listing Type
-                                </span>
-
-                                <strong>
-
-                                    @isset($property->listing_type)
-    <span class="badge bg-dark">
-        {{ [
-            'sale'  => 'For Sale',
-            'rent'  => 'For Rent',
-            'lease' => 'For Lease',
-        ][$property->listing_type] ?? ucfirst($property->listing_type) }}
-    </span>
-@endisset
-
-                                </strong>
-
-                            </div>
-
-
-                            <div class="d-flex justify-content-between">
-
-                                <span>
-                                    Listed On
-                                </span>
-
-                                <strong>
-
-                                    {{ $property->created_at?->format('d M Y') }}
-
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</section>
-
-
-{{-- =========================================================
-BROWSE MORE
-========================================================= --}}
-
-<section class="py-5 bg-light">
-
-    <div class="container">
-
-        <div class="text-center">
-
-            <h3 class="fw-bold">
-                Looking for more properties?
-            </h3>
-
-            <p class="text-muted">
-                Explore our complete property listings.
-            </p>
-
-            <a
-                href="{{ route('properties.index') }}"
-                class="btn btn-primary"
-            >
-                Browse All Properties
-            </a>
-
-        </div>
-
-    </div>
-
-</section>
-
-{{-- =========================================================
+    {{-- =========================================================
 PROPERTY GALLERY MODAL
 ========================================================= --}}
 
-<div
-    class="modal fade"
-    id="propertyGalleryModal"
-    tabindex="-1"
-    aria-hidden="true"
->
-
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-
-        <div class="modal-content bg-dark border-0">
-
-            <div class="modal-header border-0">
-
-                <h5 class="modal-title text-white">
-                    {{ $property->title }}
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                ></button>
-
-            </div>
 
 
-            <div class="modal-body p-0">
-
-                <div
-                    id="propertyGalleryCarousel"
-                    class="carousel slide"
-                    data-bs-interval="false"
-                >
-
-                    <div class="carousel-inner">
-
-                        {{-- Featured Image --}}
-                        @if($property->featured_image)
-
-                            <div class="carousel-item active">
-
-                                <div
-                                    class="d-flex align-items-center justify-content-center"
-                                    style="height:75vh;"
-                                >
-
-                                    <img
-                                        src="{{ asset(
-                                            'storage/properties/featured/' .
-                                            $property->featured_image
-                                        ) }}"
-                                        alt="{{ $property->title }}"
-                                        class="img-fluid"
-                                        style="
-                                            max-height:75vh;
-                                            max-width:95%;
-                                            object-fit:contain;
-                                        "
-                                    >
-
-                                </div>
-
-                            </div>
-
-                        @endif
 
 
-                        {{-- Gallery Images --}}
-                        @foreach($galleryImages as $image)
 
-                            <div class="carousel-item">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const navLinks = document.querySelectorAll("#propertySubNav .nav-link");
+            const sections = document.querySelectorAll(".detail-section-block");
+            const navContainer = document.querySelector(".property-sticky-nav");
 
-                                <div
-                                    class="d-flex align-items-center justify-content-center"
-                                    style="height:75vh;"
-                                >
+            if (!sections.length || !navLinks.length) return;
 
-                                    <img
-                                        src="{{ asset(
-                                            'storage/properties/gallery/' .
-                                            $image->image
-                                        ) }}"
-                                        alt="{{ $property->title }}"
-                                        class="img-fluid"
-                                        style="
-                                            max-height:75vh;
-                                            max-width:95%;
-                                            object-fit:contain;
-                                        "
-                                    >
+            // 1. Smooth Scroll on Click
+            navLinks.forEach((link) => {
+                link.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute("href");
+                    const targetSection = document.querySelector(targetId);
 
-                                </div>
+                    if (targetSection) {
+                        targetSection.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }
+                });
+            });
 
-                            </div>
+            // 2. Dynamic ScrollSpy Active Toggle
+            function onScroll() {
+                let currentSectionId = "";
+                const scrollPosition = window.scrollY + 180; // Offset for trigger point
 
-                        @endforeach
+                sections.forEach((section) => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.offsetHeight;
 
-                    </div>
+                    if (
+                        scrollPosition >= sectionTop &&
+                        scrollPosition < sectionTop + sectionHeight
+                    ) {
+                        currentSectionId = section.getAttribute("id");
+                    }
+                });
 
+                if (currentSectionId) {
+                    navLinks.forEach((link) => {
+                        link.classList.remove("active");
+                        if (link.getAttribute("href") === `#${currentSectionId}`) {
+                            link.classList.add("active");
 
-                    {{-- Previous --}}
-                    <button
-                        class="carousel-control-prev"
-                        type="button"
-                        data-bs-target="#propertyGalleryCarousel"
-                        data-bs-slide="prev"
-                    >
+                            // Auto scroll menu bar horizontally to active item on mobile
+                            if (navContainer) {
+                                const linkRect = link.getBoundingClientRect();
+                                const navRect = navContainer.getBoundingClientRect();
+                                if (
+                                    linkRect.left < navRect.left ||
+                                    linkRect.right > navRect.right
+                                ) {
+                                    link.scrollIntoView({
+                                        behavior: "smooth",
+                                        inline: "center",
+                                        block: "nearest",
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+            }
 
-                        <span
-                            class="carousel-control-prev-icon"
-                            aria-hidden="true"
-                        ></span>
+            window.addEventListener("scroll", onScroll, {
+                passive: true
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof $ !== 'undefined' && $('.floor-plan-carousel').length) {
+                $('.floor-plan-carousel').owlCarousel({
+                    loop: true,
+                    margin: 20,
+                    nav: true,
+                    dots: true,
+                    autoplay: false,
+                    autoplayTimeout: 4000,
+                    smartSpeed: 800,
+                    items: 1
+                });
+            }
+        });
+    </script>
 
-                        <span class="visually-hidden">
-                            Previous
-                        </span>
-
-                    </button>
-
-
-                    {{-- Next --}}
-                    <button
-                        class="carousel-control-next"
-                        type="button"
-                        data-bs-target="#propertyGalleryCarousel"
-                        data-bs-slide="next"
-                    >
-
-                        <span
-                            class="carousel-control-next-icon"
-                            aria-hidden="true"
-                        ></span>
-
-                        <span class="visually-hidden">
-                            Next
-                        </span>
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
 
 @endsection

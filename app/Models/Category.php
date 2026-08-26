@@ -22,6 +22,6 @@ protected $casts = [
 
 public function properties()
 {
-    return $this->hasMany(Property::class);
+    return $this->hasMany(\App\Models\Property::class, 'category_id');
 }
 }

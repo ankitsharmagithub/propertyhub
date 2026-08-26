@@ -4,19 +4,13 @@
 
 </h5>
 
-<form action="{{  $galleryStoreRoute }}"
-      method="POST"
-      enctype="multipart/form-data">
+<form action="{{ $galleryStoreRoute }}" method="POST" enctype="multipart/form-data">
 
     @csrf
 
     <div class="mb-3">
 
-        <input type="file"
-               name="images[]"
-               class="form-control"
-               multiple
-               accept="image/*">
+        <input type="file" name="images[]" class="form-control" multiple accept="image/*">
 
     </div>
 
@@ -32,51 +26,46 @@
 
 <div class="row">
 
-@forelse($property->images as $image)
+    @forelse($property->images as $image)
+        <div class="col-md-3 mb-4">
 
-<div class="col-md-3 mb-4">
+            <div class="card">
 
-    <div class="card">
+                <img src="{{ asset('storage/properties/gallery/' . $image->image) }}" class="card-img-top"
+                    style="height:180px;object-fit:cover;">
 
-        <img src="{{ asset('storage/properties/gallery/'.$image->image) }}"
-             class="card-img-top"
-             style="height:180px;object-fit:cover;">
+                <div class="card-body p-2">
 
-        <div class="card-body p-2">
+                    <form action="{{ route($galleryDeleteRoute, $image->id) }}" method="POST">
 
-            <form action="{{ route($galleryDeleteRoute,$image->id) }}"
-                  method="POST">
+                        @csrf
+                        @method('DELETE')
 
-                @csrf
-                @method('DELETE')
+                        <button class="btn btn-danger btn-sm w-100">
 
-                <button
-                    class="btn btn-danger btn-sm w-100">
+                            Delete
 
-                    Delete
+                        </button>
 
-                </button>
+                    </form>
 
-            </form>
+                </div>
+
+            </div>
 
         </div>
 
-    </div>
+    @empty
 
-</div>
+        <div class="col-12">
 
-@empty
+            <div class="alert alert-info">
 
-<div class="col-12">
+                No Gallery Images Uploaded.
 
-    <div class="alert alert-info">
+            </div>
 
-        No Gallery Images Uploaded.
-
-    </div>
-
-</div>
-
-@endforelse
+        </div>
+    @endforelse
 
 </div>

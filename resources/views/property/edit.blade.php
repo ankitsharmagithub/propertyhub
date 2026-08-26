@@ -4,30 +4,25 @@
 
 @section('content')
 
-<div class="card">
+    <div class="card">
 
-    <div class="card-header">
-        <h4 class="mb-0">Edit Property</h4>
-    </div>
+        <div class="card-header">
+            <h4 class="mb-0">Edit Property</h4>
+        </div>
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <form
-            action="{{ $formAction }}"
-            method="POST"
-            enctype="multipart/form-data"
-            id="propertyForm"
-        >
+            <form action="{{ $formAction }}" method="POST" enctype="multipart/form-data" id="propertyForm">
 
-            @csrf
-            @method('PUT')
+                @csrf
+                @method('PUT')
 
-            @include('property._form')
+                @include('property._form')
 
-        </form>
+            </form>
+
+        </div>
 
     </div>
-
-</div>
 
 @endsection
